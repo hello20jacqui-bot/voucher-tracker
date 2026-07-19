@@ -7,11 +7,11 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Vouchers">
+<meta name="apple-mobile-web-app-title" content="LG-Voucher-Tracker">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
-<title>Voucher Tracker</title>
+<title>LG-Voucher-Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -49,7 +49,7 @@
 
   /* ---------- Header ---------- */
   .topbar{position:sticky;top:0;z-index:20;background:var(--color-bg);padding:calc(18px + var(--safe-top)) 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-  .topbar h1{font-size:22px;font-weight:700;}
+  .topbar h1{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .topbar-actions{display:flex;align-items:center;gap:6px;}
   .icon-btn{width:38px;height:38px;border-radius:11px;border:1px solid var(--color-border);background:var(--color-paper);display:flex;align-items:center;justify-content:center;color:var(--color-ink);box-shadow:var(--shadow);}
   .icon-btn:active{transform:scale(0.94);}
@@ -67,8 +67,37 @@
 
   /* ---------- Mode switch ---------- */
   .mode-switch{display:flex;gap:4px;margin:0 20px 18px;background:var(--color-paper);border:1px solid var(--color-border);border-radius:13px;padding:4px;box-shadow:var(--shadow);}
-  .mode-btn{flex:1;border:none;background:transparent;padding:10px 0;border-radius:10px;font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--color-ink-soft);}
+  .mode-btn{flex:1;border:none;background:transparent;padding:10px 2px;border-radius:10px;font-family:var(--font-body);font-weight:600;font-size:12.5px;color:var(--color-ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .mode-btn.active{background:var(--color-primary);color:#fff;}
+
+  /* ---------- Summary dashboard ---------- */
+  .stat-row{display:flex;gap:12px;margin-bottom:18px;}
+  .stat-tile{flex:1;background:var(--color-paper);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;}
+  .stat-tile .label{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-ink-soft);margin-bottom:6px;}
+  .stat-tile .value{font-family:var(--font-mono);font-weight:700;font-size:22px;color:var(--color-primary-dark);}
+  .stat-tile .sub{font-size:11.5px;color:var(--color-ink-soft);margin-top:4px;}
+  .card+.card{margin-top:16px;}
+  .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;}
+  .card-header h3{font-size:15px;font-weight:700;}
+  .period-toggle{display:flex;gap:4px;background:var(--color-bg);border:1px solid var(--color-border);border-radius:10px;padding:3px;flex-shrink:0;}
+  .period-btn{padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;color:var(--color-ink-soft);background:transparent;border:none;}
+  .period-btn.active{background:var(--color-primary);color:#fff;}
+  .chart-row{display:flex;align-items:flex-end;gap:6px;height:150px;position:relative;padding-top:32px;}
+  .bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative;background:transparent;border:none;padding:0;}
+  .bar-track{width:100%;display:flex;align-items:flex-end;justify-content:center;height:100%;position:relative;}
+  .bar-fill{width:70%;background:var(--color-primary);border-radius:4px 4px 2px 2px;min-height:3px;}
+  .bar-fill.is-peak{background:var(--color-primary-dark);}
+  .bar-value-chip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--color-ink);color:#fff;font-family:var(--font-mono);font-size:11px;font-weight:600;padding:4px 8px;border-radius:6px;white-space:nowrap;box-shadow:var(--shadow);z-index:5;}
+  .bar-value-chip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--color-ink);}
+  .bar-label{margin-top:8px;font-family:var(--font-mono);font-size:10px;color:var(--color-ink-soft);text-align:center;line-height:1.3;}
+  .hint-note{font-size:12px;color:var(--color-ink-soft);line-height:1.5;margin-top:12px;}
+  .store-bar-row{margin-bottom:12px;}
+  .store-bar-row:last-child{margin-bottom:0;}
+  .store-bar-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;font-size:13px;}
+  .store-bar-top .name{font-weight:600;}
+  .store-bar-top .amt{font-family:var(--font-mono);font-weight:600;color:var(--color-primary-dark);}
+  .store-bar-track{height:8px;border-radius:4px;background:var(--color-bg);border:1px solid var(--color-border);overflow:hidden;}
+  .store-bar-fill{height:100%;background:var(--color-primary);border-radius:4px;}
 
   /* ---------- Store grouping ---------- */
   .store-group{margin-bottom:8px;}
@@ -274,6 +303,7 @@ function round2(n){ return Math.round((Number(n)+Number.EPSILON)*100)/100; }
 function uid(){ return (typeof crypto!=='undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(16).slice(2); }
 function fmtMoney(n){ var v=round2(n); return '$'+v.toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmtDate(iso){ if(!iso) return ''; var d=new Date(iso+'T00:00:00'); return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
+function fmtDateTime(ts){ if(!ts) return ''; var d=new Date(ts); return d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})+', '+d.toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'}); }
 function relTime(ts){
   if(!ts) return 'never';
   var s=Math.floor((Date.now()-ts)/1000);
@@ -300,6 +330,70 @@ function computeVoucher(v){
 }
 function statusRank(s){ return s==='IN-USE'?0:(s==='NEW'?1:2); }
 function statusClass(s){ return s==='IN-USE'?'inuse':(s==='NEW'?'new':'expired'); }
+
+/* ---------------- summary / analytics ---------------- */
+function allTransactionsFlat(){
+  var out=[];
+  state.vouchers.forEach(function(v){
+    var store=voucherStore(v);
+    (v.transactions||[]).forEach(function(t){
+      out.push({date:t.date, amount:Number(t.amount), store:store});
+    });
+  });
+  return out;
+}
+function parseISODate(iso){ return new Date(iso+'T00:00:00'); }
+function addDays(d,n){ var r=new Date(d.getFullYear(),d.getMonth(),d.getDate()+n); return r; }
+function startOfWeek(d){ var day=(d.getDay()+6)%7; return new Date(d.getFullYear(),d.getMonth(),d.getDate()-day); }
+function fmtShortDate(d){ return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
+function fmtWeekRange(s,e){ return fmtShortDate(s)+' – '+fmtShortDate(e); }
+function fmtMonthLabel(d){ return d.toLocaleDateString('en-AU',{month:'short',year:'2-digit'}); }
+function fmtMonthFull(d){ return d.toLocaleDateString('en-AU',{month:'long',year:'numeric'}); }
+
+function buildWeekBuckets(n){
+  var curStart=startOfWeek(new Date());
+  var buckets=[];
+  for(var i=n-1;i>=0;i--){
+    var s=addDays(curStart,-7*i);
+    var e=addDays(s,6);
+    buckets.push({start:s,end:e,label:fmtShortDate(s),full:fmtWeekRange(s,e),total:0});
+  }
+  return buckets;
+}
+function buildMonthBuckets(n){
+  var today=new Date();
+  var buckets=[];
+  for(var i=n-1;i>=0;i--){
+    var d=new Date(today.getFullYear(), today.getMonth()-i, 1);
+    var e=new Date(d.getFullYear(), d.getMonth()+1, 0);
+    buckets.push({start:d,end:e,label:fmtMonthLabel(d),full:fmtMonthFull(d),total:0});
+  }
+  return buckets;
+}
+function fillBuckets(buckets, txns){
+  txns.forEach(function(t){
+    var d=parseISODate(t.date);
+    for(var i=0;i<buckets.length;i++){
+      if(d.getTime()>=buckets[i].start.getTime() && d.getTime()<=buckets[i].end.getTime()){
+        buckets[i].total=round2(buckets[i].total+t.amount);
+        break;
+      }
+    }
+  });
+  return buckets;
+}
+function storeBreakdownInRange(txns, rangeStart, rangeEnd){
+  var map={};
+  txns.forEach(function(t){
+    var d=parseISODate(t.date);
+    if(d.getTime()>=rangeStart.getTime() && d.getTime()<=rangeEnd.getTime()){
+      map[t.store]=round2((map[t.store]||0)+t.amount);
+    }
+  });
+  var arr=Object.keys(map).map(function(k){ return {store:k, total:map[k]}; });
+  arr.sort(function(a,b){ return b.total-a.total; });
+  return arr;
+}
 
 /* ---------------- image compression ---------------- */
 function compressImage(file, maxWidth, quality){
@@ -393,7 +487,7 @@ function showToast(msg, type){
 /* ---------------- rendering ---------------- */
 var appEl;
 function goHome(){
-  state.view = state.mode==='add' ? 'addHome' : 'useDashboard';
+  state.view = state.mode==='add' ? 'addHome' : (state.mode==='summary' ? 'summaryDashboard' : 'useDashboard');
 }
 function render(){
   var html='';
@@ -402,6 +496,7 @@ function render(){
   else if(state.view==='manageEdit') html=renderVoucherForm(getVoucher(state.editingVoucherId));
   else if(state.view==='useDetail') html=renderUseDetail();
   else if(state.view==='addHome') html=renderAddHome();
+  else if(state.view==='summaryDashboard') html=renderSummaryDashboard();
   else html=renderUseDashboard();
 
   appEl.innerHTML=html;
@@ -415,11 +510,11 @@ function render(){
 
 function renderTopbar(title, showBack){
   var syncCls = state.syncStatus==='syncing'?'syncing':(state.syncStatus==='error'?'error':(state.syncStatus==='synced'?'synced':''));
-  var syncLabel = state.syncStatus==='syncing' ? 'Syncing…' : (state.syncStatus==='error' ? 'Sync failed' : (state.lastSynced ? 'Synced '+relTime(state.lastSynced) : 'Not synced yet'));
+  var syncLabel = state.syncStatus==='syncing' ? 'Syncing…' : (state.syncStatus==='error' ? 'Sync failed' : (state.lastSynced ? 'Synced '+relTime(state.lastSynced)+' · '+fmtDateTime(state.lastSynced) : 'Not synced yet'));
   var left = showBack
     ? '<button class="icon-btn" data-action="go-home" aria-label="Back">'+iconBack()+'</button>'
     : '<h1>'+escapeHtml(title)+'</h1>';
-  var isHome = state.view==='useDashboard' || state.view==='addHome';
+  var isHome = state.view==='useDashboard' || state.view==='addHome' || state.view==='summaryDashboard';
   return ''+
   '<div class="topbar">'+
     left+
@@ -435,6 +530,7 @@ function renderModeSwitch(){
   return '<div class="mode-switch">'+
     '<button class="mode-btn'+(state.mode==='use'?' active':'')+'" data-action="set-mode" data-mode="use">Use vouchers</button>'+
     '<button class="mode-btn'+(state.mode==='add'?' active':'')+'" data-action="set-mode" data-mode="add">Add vouchers</button>'+
+    '<button class="mode-btn'+(state.mode==='summary'?' active':'')+'" data-action="set-mode" data-mode="summary">Summary</button>'+
   '</div>';
 }
 
@@ -488,7 +584,7 @@ function renderUseDashboard(){
       renderGroupedList(state.vouchers, renderVoucherCard);
   }
 
-  return renderTopbar('Vouchers', false) + renderModeSwitch() + body;
+  return renderTopbar('LG-Voucher-Tracker', false) + renderModeSwitch() + body;
 }
 
 function renderAddHome(){
@@ -650,6 +746,72 @@ function renderVoucherForm(v){
   '</div>';
 }
 
+function renderSummaryDashboard(){
+  var period = state.summaryPeriod || 'week';
+  var allTxns = allTransactionsFlat();
+  var body;
+
+  if(state.vouchers.length===0 || allTxns.length===0){
+    body = '<div class="screen" style="padding-top:0;">'+
+      '<div class="empty"><h2>Nothing to summarise yet</h2><p>Once you record a transaction against a voucher, weekly and monthly spending will show up here.</p></div>'+
+    '</div>';
+    return renderTopbar('Summary', false) + renderModeSwitch() + body;
+  }
+
+  var buckets = period==='week' ? buildWeekBuckets(8) : buildMonthBuckets(6);
+  fillBuckets(buckets, allTxns);
+  var max = Math.max.apply(null, buckets.map(function(b){ return b.total; }).concat([0.01]));
+  var periodTotal = round2(buckets.reduce(function(s,b){ return s+b.total; },0));
+  var allTimeTotal = round2(allTxns.reduce(function(s,t){ return s+t.amount; },0));
+
+  var chartHtml = buckets.map(function(b,i){
+    var h = Math.max(3, Math.round((b.total/max)*100));
+    var isPeak = b.total===max && max>0;
+    var revealed = state.summaryRevealIndex===i;
+    var chip = revealed ? '<div class="bar-value-chip">'+fmtMoney(b.total)+'<br><span style="font-weight:400;opacity:.85;">'+escapeHtml(b.full)+'</span></div>' : '';
+    return '<button class="bar-col" data-action="toggle-bar-value" data-idx="'+i+'">'+
+      '<div class="bar-track">'+chip+'<div class="bar-fill'+(isPeak?' is-peak':'')+'" style="height:'+h+'%"></div></div>'+
+      '<div class="bar-label">'+escapeHtml(b.label)+'</div>'+
+    '</button>';
+  }).join('');
+
+  var rangeStart = buckets[0].start, rangeEnd = buckets[buckets.length-1].end;
+  var stores = storeBreakdownInRange(allTxns, rangeStart, rangeEnd);
+  var storeMax = stores.length ? stores[0].total : 1;
+  var storesHtml = stores.length===0
+    ? '<div class="ledger-empty">No spending in this period yet.</div>'
+    : stores.map(function(s){
+        var w = Math.round((s.total/storeMax)*100);
+        return '<div class="store-bar-row">'+
+          '<div class="store-bar-top"><span class="name">'+escapeHtml(s.store)+'</span><span class="amt tabular">'+fmtMoney(s.total)+'</span></div>'+
+          '<div class="store-bar-track"><div class="store-bar-fill" style="width:'+w+'%"></div></div>'+
+        '</div>';
+      }).join('');
+
+  body = '<div class="screen" style="padding-top:0;">'+
+    '<div class="stat-row">'+
+      '<div class="stat-tile"><div class="label">This period</div><div class="value tabular">'+fmtMoney(periodTotal)+'</div><div class="sub">'+(period==='week'?'last 8 weeks':'last 6 months')+'</div></div>'+
+      '<div class="stat-tile"><div class="label">All-time spent</div><div class="value tabular">'+fmtMoney(allTimeTotal)+'</div><div class="sub">across '+state.vouchers.length+' voucher'+(state.vouchers.length===1?'':'s')+'</div></div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="card-header"><h3>Spending over time</h3>'+
+        '<div class="period-toggle">'+
+          '<button class="period-btn'+(period==='week'?' active':'')+'" data-action="set-period" data-period="week">Weekly</button>'+
+          '<button class="period-btn'+(period==='month'?' active':'')+'" data-action="set-period" data-period="month">Monthly</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="chart-row">'+chartHtml+'</div>'+
+      '<div class="hint-note">Tap a bar to see the exact amount and date range.</div>'+
+    '</div>'+
+    '<div class="card">'+
+      '<div class="card-header"><h3>By store — this period</h3></div>'+
+      storesHtml+
+    '</div>'+
+  '</div>';
+
+  return renderTopbar('Summary', false) + renderModeSwitch() + body;
+}
+
 function renderSettings(){
   var cfg=state.config||{owner:'',repo:'',path:'vouchers.json',branch:'main',token:''};
   var connected=!!state.config;
@@ -728,6 +890,8 @@ function handleAction(action, el){
   else if(action==='delete-voucher'){ onDeleteVoucher(id); }
   else if(action==='clear-expired'){ onClearExpired(); }
   else if(action==='forget-token'){ if(confirm('Remove the saved token from this phone? You can reconnect any time.')){ clearConfigLS(); state.config=null; state.vouchers=[]; state.sha=null; state.view='settings'; render(); } }
+  else if(action==='set-period'){ state.summaryPeriod=el.getAttribute('data-period'); state.summaryRevealIndex=null; render(); }
+  else if(action==='toggle-bar-value'){ var idx=Number(el.getAttribute('data-idx')); state.summaryRevealIndex = state.summaryRevealIndex===idx ? null : idx; render(); }
 }
 
 function onPhotoPicked(e){

@@ -1,4 +1,4 @@
-# Voucher Tracker — setup guide
+# LG-Voucher-Tracker — setup guide
 
 A small web app for tracking gift/store voucher barcodes, PINs, and remaining
 balances — Coles, Myer, or anywhere else — shared between two phones. No app
@@ -83,7 +83,7 @@ It'll launch full-screen, no browser bar, with the app icon.
 
 ## Using it
 
-The app has two modes, switched with the toggle at the top:
+The app has three modes, switched with the toggle at the top:
 
 - **Use vouchers** (default, opens first every time) — for checkout. Shows
   your vouchers grouped by store. Tap one to see its barcode, PIN, and
@@ -93,6 +93,13 @@ The app has two modes, switched with the toggle at the top:
 - **Add vouchers** — for setting things up or cleaning up. Add a new
   voucher (choose or type the store, then value, PIN, purchase date, and a
   barcode photo), or edit/delete any existing voucher from the list below.
+- **Summary** — a spending dashboard across every voucher combined. Two
+  stat tiles up top show the total for the selected period and your
+  all-time total. Below that, a bar chart toggles between **Weekly** (last
+  8 weeks) and **Monthly** (last 6 months) — tap any bar to reveal its
+  exact amount and date range. A "by store" breakdown ranks how much went
+  to each store within that same period. It updates automatically as you
+  record transactions elsewhere in the app.
 
 **Deleting expired vouchers**: once a voucher's balance hits zero it's
 marked EXPIRED automatically. You can remove expired ones two ways —
@@ -116,7 +123,9 @@ against removing one by accident while you're still using it.
 - **Both phones**: whoever records a transaction saves it straight to the
   shared private repo. Pull down isn't wired up — tap the refresh icon
   (top right) if you want to double-check you're seeing the other person's
-  latest update; the app also auto-refreshes whenever you reopen it.
+  latest update; the app also auto-refreshes whenever you reopen it. The
+  small sync line under the header shows both a relative time ("Synced 2m
+  ago") and the exact date/time of the last successful sync.
 
 ## Troubleshooting
 

@@ -1,6 +1,6 @@
 {
-  "name": "Voucher Tracker",
-  "short_name": "Vouchers",
+  "name": "LG-Voucher-Tracker",
+  "short_name": "LG-Vouchers",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",
