@@ -63,6 +63,12 @@
 
   .summary{padding:0 20px 18px;font-size:13.5px;color:var(--color-ink-soft);}
   .summary b{color:var(--color-ink);font-family:var(--font-mono);font-weight:600;}
+  .link-btn{border:none;background:none;padding:0;margin:0;color:var(--color-expired);font-family:var(--font-mono);font-size:12.5px;font-weight:600;text-decoration:underline;}
+
+  /* ---------- Mode switch ---------- */
+  .mode-switch{display:flex;gap:4px;margin:0 20px 18px;background:var(--color-paper);border:1px solid var(--color-border);border-radius:13px;padding:4px;box-shadow:var(--shadow);}
+  .mode-btn{flex:1;border:none;background:transparent;padding:10px 0;border-radius:10px;font-family:var(--font-body);font-weight:600;font-size:13.5px;color:var(--color-ink-soft);}
+  .mode-btn.active{background:var(--color-primary);color:#fff;}
 
   /* ---------- Store grouping ---------- */
   .store-group{margin-bottom:8px;}
@@ -90,6 +96,8 @@
   .vc-balance{font-family:var(--font-mono);font-weight:700;font-size:30px;color:var(--color-primary-dark);}
   .voucher-card.is-expired .vc-balance{color:var(--color-ink-soft);}
   .vc-initial{font-family:var(--font-mono);font-size:12.5px;color:var(--color-ink-soft);}
+  .manage-actions{display:flex;gap:10px;margin-top:14px;}
+  .manage-actions .btn{flex:1;padding:10px 14px;font-size:13.5px;}
 
   .empty{margin:40px 20px;padding:34px 22px;background:var(--color-paper);border:1px dashed var(--color-border);border-radius:var(--radius);text-align:center;}
   .empty h2{font-size:17px;margin-bottom:8px;}
@@ -190,7 +198,8 @@ var CONFIG_KEY='voucherTrackerConfig_v1';
 var CACHE_KEY='voucherTrackerCache_v1';
 
 var state={
-  view:'dashboard',
+  mode:'use',
+  view:'useDashboard',
   config:null,
   vouchers:[],
   sha:null,
@@ -376,13 +385,17 @@ function showToast(msg, type){
 
 /* ---------------- rendering ---------------- */
 var appEl;
+function goHome(){
+  state.view = state.mode==='add' ? 'addHome' : 'useDashboard';
+}
 function render(){
   var html='';
   if(state.view==='settings') html=renderSettings();
-  else if(state.view==='addVoucher') html=renderVoucherForm(null);
-  else if(state.view==='editVoucher') html=renderVoucherForm(getVoucher(state.editingVoucherId));
-  else if(state.view==='detail') html=renderDetail();
-  else html=renderDashboard();
+  else if(state.view==='addForm') html=renderVoucherForm(null);
+  else if(state.view==='manageEdit') html=renderVoucherForm(getVoucher(state.editingVoucherId));
+  else if(state.view==='useDetail') html=renderUseDetail();
+  else if(state.view==='addHome') html=renderAddHome();
+  else html=renderUseDashboard();
 
   appEl.innerHTML=html;
 
@@ -397,8 +410,9 @@ function renderTopbar(title, showBack){
   var syncCls = state.syncStatus==='syncing'?'syncing':(state.syncStatus==='error'?'error':(state.syncStatus==='synced'?'synced':''));
   var syncLabel = state.syncStatus==='syncing' ? 'Syncing…' : (state.syncStatus==='error' ? 'Sync failed' : (state.lastSynced ? 'Synced '+relTime(state.lastSynced) : 'Not synced yet'));
   var left = showBack
-    ? '<button class="icon-btn" data-action="go-dashboard" aria-label="Back">'+iconBack()+'</button>'
+    ? '<button class="icon-btn" data-action="go-home" aria-label="Back">'+iconBack()+'</button>'
     : '<h1>'+escapeHtml(title)+'</h1>';
+  var isHome = state.view==='useDashboard' || state.view==='addHome';
   return ''+
   '<div class="topbar">'+
     left+
@@ -407,48 +421,80 @@ function renderTopbar(title, showBack){
       '<button class="icon-btn" data-action="go-settings" aria-label="Settings">'+iconSettings()+'</button>'+
     '</div>'+
   '</div>'+
-  (state.view==='dashboard' ? '<div class="sync-row"><span class="sync-dot '+syncCls+'"></span><span>'+syncLabel+'</span></div>' : '');
+  (isHome ? '<div class="sync-row"><span class="sync-dot '+syncCls+'"></span><span>'+syncLabel+'</span></div>' : '');
 }
 
-function renderDashboard(){
+function renderModeSwitch(){
+  return '<div class="mode-switch">'+
+    '<button class="mode-btn'+(state.mode==='use'?' active':'')+'" data-action="set-mode" data-mode="use">Use vouchers</button>'+
+    '<button class="mode-btn'+(state.mode==='add'?' active':'')+'" data-action="set-mode" data-mode="add">Add vouchers</button>'+
+  '</div>';
+}
+
+function groupByStore(list){
+  var byStore={};
+  list.forEach(function(v){
+    var key=voucherStore(v);
+    if(!byStore[key]) byStore[key]=[];
+    byStore[key].push(v);
+  });
+  var names=Object.keys(byStore).sort(function(a,b){
+    if(a==='Other') return 1;
+    if(b==='Other') return -1;
+    return a.localeCompare(b);
+  });
+  return names.map(function(name){ return {name:name, vouchers:byStore[name]}; });
+}
+
+function renderGroupedList(list, cardFn){
+  return groupByStore(list).map(function(g){
+    var sorted=g.vouchers.slice().sort(function(a,b){
+      var ca=computeVoucher(a), cb=computeVoucher(b);
+      var r=statusRank(ca.status)-statusRank(cb.status);
+      if(r!==0) return r;
+      return (b.updatedAt||0)-(a.updatedAt||0);
+    });
+    var groupRemaining=0, groupActive=0;
+    sorted.forEach(function(v){ var c=computeVoucher(v); if(c.status!=='EXPIRED'){ groupRemaining+=c.balance; groupActive++; } });
+    return '<div class="store-group">'+
+      '<div class="store-group-header"><h3>'+escapeHtml(g.name)+'</h3><span class="sub tabular">'+groupActive+' active · '+fmtMoney(groupRemaining)+'</span></div>'+
+      '<div class="list">'+sorted.map(cardFn).join('')+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function countExpired(){ return state.vouchers.filter(function(v){ return computeVoucher(v).status==='EXPIRED'; }).length; }
+
+function renderUseDashboard(){
   var totalRemaining=0, activeCount=0;
   state.vouchers.forEach(function(v){ var c=computeVoucher(v); if(c.status!=='EXPIRED'){ totalRemaining+=c.balance; activeCount++; } });
+  var expiredCount=countExpired();
 
   var body;
   if(state.vouchers.length===0){
-    body = '<div class="empty"><h2>No vouchers yet</h2><p>Add your first voucher — Coles, Myer, or anywhere else — with its barcode, PIN and value, to start tracking what\'s left on it.</p>'+
-      '<button class="btn btn-primary" data-action="go-add">Add a voucher</button></div>';
+    body = '<div class="empty"><h2>No vouchers yet</h2><p>Switch to Add mode to record your first voucher — Coles, Myer, or anywhere else.</p>'+
+      '<button class="btn btn-primary" data-action="set-mode" data-mode="add">Go to Add mode</button></div>';
   } else {
-    var byStore={};
-    state.vouchers.forEach(function(v){
-      var key=voucherStore(v);
-      if(!byStore[key]) byStore[key]=[];
-      byStore[key].push(v);
-    });
-    var storeNames=Object.keys(byStore).sort(function(a,b){
-      if(a==='Other') return 1;
-      if(b==='Other') return -1;
-      return a.localeCompare(b);
-    });
-    body = '<div class="summary">'+activeCount+' active · <b>'+fmtMoney(totalRemaining)+'</b> remaining</div>'+
-      storeNames.map(function(name){
-        var list=byStore[name].slice().sort(function(a,b){
-          var ca=computeVoucher(a), cb=computeVoucher(b);
-          var r=statusRank(ca.status)-statusRank(cb.status);
-          if(r!==0) return r;
-          return (b.updatedAt||0)-(a.updatedAt||0);
-        });
-        var groupRemaining=0, groupActive=0;
-        list.forEach(function(v){ var c=computeVoucher(v); if(c.status!=='EXPIRED'){ groupRemaining+=c.balance; groupActive++; } });
-        return '<div class="store-group">'+
-          '<div class="store-group-header"><h3>'+escapeHtml(name)+'</h3><span class="sub tabular">'+groupActive+' active · '+fmtMoney(groupRemaining)+'</span></div>'+
-          '<div class="list">'+list.map(renderVoucherCard).join('')+'</div>'+
-        '</div>';
-      }).join('');
+    body = '<div class="summary">'+activeCount+' active · <b>'+fmtMoney(totalRemaining)+'</b> remaining'+
+      (expiredCount>0 ? ' · <button class="link-btn" data-action="clear-expired">clear '+expiredCount+' expired</button>' : '')+
+      '</div>'+
+      renderGroupedList(state.vouchers, renderVoucherCard);
   }
 
-  return renderTopbar('Vouchers', false) + body +
-    '<button class="fab" data-action="go-add" aria-label="Add voucher">'+iconPlus()+'</button>';
+  return renderTopbar('Vouchers', false) + renderModeSwitch() + body;
+}
+
+function renderAddHome(){
+  var expiredCount=countExpired();
+  var body = '<button class="btn btn-primary btn-block" data-action="go-add-form" style="margin-bottom:14px;">+ Add a new voucher</button>'+
+    (expiredCount>0 ? '<button class="btn btn-danger btn-block" data-action="clear-expired" style="margin-bottom:22px;">Clear '+expiredCount+' expired voucher'+(expiredCount>1?'s':'')+'</button>' : '<div style="margin-bottom:22px;"></div>');
+
+  if(state.vouchers.length>0){
+    body += '<h3 style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-ink-soft);margin-bottom:4px;">All vouchers</h3>'+
+      renderGroupedList(state.vouchers, renderManageCard);
+  }
+
+  return renderTopbar('Add vouchers', false) + renderModeSwitch() + '<div class="screen" style="padding-top:0;">'+body+'</div>';
 }
 
 function renderVoucherCard(v){
@@ -467,9 +513,30 @@ function renderVoucherCard(v){
   '</button>';
 }
 
-function renderDetail(){
+function renderManageCard(v){
+  var c=computeVoucher(v);
+  var expiredCls = c.status==='EXPIRED' ? ' is-expired' : '';
+  return '<div class="voucher-card'+expiredCls+'">'+
+    '<div class="vc-top">'+
+      '<div><div class="vc-store">'+escapeHtml(voucherStore(v))+'</div><div class="vc-label">'+escapeHtml(voucherTitle(v))+'</div><div class="vc-sub">Purchased '+fmtDate(v.purchaseDate)+'</div></div>'+
+      '<span class="stamp '+statusClass(c.status)+'">'+c.status+'</span>'+
+    '</div>'+
+    '<div class="vc-divider"></div>'+
+    '<div class="vc-bottom">'+
+      '<div><div class="vc-balance-label">Remaining</div><div class="vc-balance tabular">'+fmtMoney(c.balance)+'</div></div>'+
+      '<div class="vc-initial tabular">of '+fmtMoney(v.initialValue)+'</div>'+
+    '</div>'+
+    '<div class="manage-actions">'+
+      '<button class="btn btn-secondary" data-action="edit-voucher" data-id="'+v.id+'">Edit</button>'+
+      '<button class="btn btn-danger" data-action="delete-voucher" data-id="'+v.id+'">Delete</button>'+
+    '</div>'+
+  '</div>';
+}
+
+
+function renderUseDetail(){
   var v=getVoucher(state.activeVoucherId);
-  if(!v){ state.view='dashboard'; return renderDashboard(); }
+  if(!v){ goHome(); return state.mode==='add' ? renderAddHome() : renderUseDashboard(); }
   var c=computeVoucher(v);
   var pinShown = !!state.pinRevealed[v.id];
 
@@ -503,22 +570,20 @@ function renderDetail(){
       '<div class="detail-row"><span class="k">Purchased</span><span class="v">'+fmtDate(v.purchaseDate)+'</span></div>'+
     '</div>'+
 
-    '<div class="add-txn"><h3>Record a transaction</h3>'+
-      '<form data-form="add-txn" data-id="'+v.id+'">'+
-        '<div class="field-row">'+
-          '<div class="field"><label>Date</label><input type="date" name="date" value="'+todayISO()+'" required></div>'+
-          '<div class="field"><label>Amount spent</label><input type="number" name="amount" inputmode="decimal" step="0.01" min="0.01" placeholder="0.00" required></div>'+
-        '</div>'+
-        '<button class="btn btn-primary btn-block" type="submit">Add transaction</button>'+
-      '</form>'+
-    '</div>'+
+    (c.status==='EXPIRED'
+      ? '<div class="add-txn"><h3>This voucher is fully used</h3><p style="font-size:13px;color:var(--color-ink-soft);margin-bottom:14px;">No balance left to spend. You can remove it once you\'re done checking its history.</p>'+
+          '<button class="btn btn-danger btn-block" data-action="delete-voucher" data-id="'+v.id+'">Delete this voucher</button></div>'
+      : '<div class="add-txn"><h3>Record a transaction</h3>'+
+          '<form data-form="add-txn" data-id="'+v.id+'">'+
+            '<div class="field-row">'+
+              '<div class="field"><label>Date</label><input type="date" name="date" value="'+todayISO()+'" required></div>'+
+              '<div class="field"><label>Amount spent</label><input type="number" name="amount" inputmode="decimal" step="0.01" min="0.01" placeholder="0.00" required></div>'+
+            '</div>'+
+            '<button class="btn btn-primary btn-block" type="submit">Add transaction</button>'+
+          '</form>'+
+        '</div>')+
 
     '<div class="ledger"><h3>Transaction history</h3>'+ledgerHtml+'</div>'+
-
-    '<div class="form-actions">'+
-      '<button class="btn btn-secondary" style="flex:1;" data-action="edit-voucher" data-id="'+v.id+'">Edit voucher</button>'+
-      '<button class="btn btn-danger" style="flex:1;" data-action="delete-voucher" data-id="'+v.id+'">Delete</button>'+
-    '</div>'+
   '</div>';
 }
 
@@ -637,11 +702,12 @@ function attachEvents(){
 
 function handleAction(action, el){
   var id=el.getAttribute('data-id');
-  if(action==='go-dashboard'){ state.view='dashboard'; state.photoDraft=null; render(); }
-  else if(action==='go-add'){ state.view='addVoucher'; state.photoDraft=null; render(); }
+  if(action==='go-home'){ goHome(); state.photoDraft=null; render(); }
+  else if(action==='set-mode'){ state.mode=el.getAttribute('data-mode'); goHome(); state.photoDraft=null; render(); }
+  else if(action==='go-add-form'){ state.view='addForm'; state.photoDraft=null; render(); }
   else if(action==='go-settings'){ state.view='settings'; render(); }
-  else if(action==='open-voucher'){ state.view='detail'; state.activeVoucherId=id; render(); }
-  else if(action==='edit-voucher'){ state.view='editVoucher'; state.editingVoucherId=id; state.photoDraft=null; render(); }
+  else if(action==='open-voucher'){ state.view='useDetail'; state.activeVoucherId=id; render(); }
+  else if(action==='edit-voucher'){ state.view='manageEdit'; state.editingVoucherId=id; state.photoDraft=null; render(); }
   else if(action==='refresh'){ refreshFromRemote(false); }
   else if(action==='toggle-pin'){ state.pinRevealed[id]=!state.pinRevealed[id]; render(); }
   else if(action==='toggle-pin-checkout'){ state.pinRevealed['checkout_'+id]=!state.pinRevealed['checkout_'+id]; render(); }
@@ -653,6 +719,7 @@ function handleAction(action, el){
   else if(action==='pick-photo'){ var pf=document.getElementById('photoFile'); if(pf) pf.click(); }
   else if(action==='delete-txn'){ onDeleteTxn(id, el.getAttribute('data-txn')); }
   else if(action==='delete-voucher'){ onDeleteVoucher(id); }
+  else if(action==='clear-expired'){ onClearExpired(); }
   else if(action==='forget-token'){ if(confirm('Remove the saved token from this phone? You can reconnect any time.')){ clearConfigLS(); state.config=null; state.vouchers=[]; state.sha=null; state.view='settings'; render(); } }
 }
 
@@ -690,7 +757,7 @@ function onSubmitVoucherForm(e){
     }
     return vouchers;
   }, isEdit ? 'Edit voucher '+id : 'Add voucher').then(function(ok){
-    if(ok){ state.photoDraft=null; state.view='dashboard'; showToast(isEdit?'Voucher updated.':'Voucher saved.'); render(); }
+    if(ok){ state.photoDraft=null; goHome(); showToast(isEdit?'Voucher updated.':'Voucher saved.'); render(); }
   });
 }
 
@@ -725,7 +792,19 @@ function onDeleteTxn(voucherId, txnId){
 function onDeleteVoucher(id){
   if(!confirm('Delete this voucher and its whole history? This can\'t be undone.')) return;
   persist(function(vouchers){ return vouchers.filter(function(v){ return v.id!==id; }); }, 'Delete voucher').then(function(ok){
-    if(ok){ state.view='dashboard'; showToast('Voucher deleted.'); render(); }
+    if(ok){ goHome(); showToast('Voucher deleted.'); render(); }
+  });
+}
+
+function onClearExpired(){
+  var expired=state.vouchers.filter(function(v){ return computeVoucher(v).status==='EXPIRED'; });
+  if(expired.length===0) return;
+  var n=expired.length;
+  if(!confirm('Delete '+n+' expired voucher'+(n>1?'s':'')+'? This can\'t be undone.')) return;
+  persist(function(vouchers){
+    return vouchers.filter(function(v){ return computeVoucher(v).status!=='EXPIRED'; });
+  }, 'Clear expired vouchers').then(function(ok){
+    if(ok){ showToast('Cleared '+n+' expired voucher'+(n>1?'s':'')+'.'); render(); }
   });
 }
 
@@ -749,7 +828,7 @@ function onSubmitSettingsForm(e){
     state.syncStatus='synced';
     state.lastSynced=Date.now();
     saveCache(res.data, res.sha);
-    state.view='dashboard';
+    goHome();
     showToast('Connected.');
     render();
   }).catch(function(err){
