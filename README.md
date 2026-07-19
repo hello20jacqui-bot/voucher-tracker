@@ -83,11 +83,30 @@ It'll launch full-screen, no browser bar, with the app icon.
 
 ## Using it
 
-- **Add a voucher**: tap the **+** button, choose or type the store (Coles,
-  Myer, etc. — start typing for suggestions), then enter the value, PIN,
-  purchase date, and a photo of the barcode (camera or photo library). The
-  dashboard groups vouchers under their store, each with its own
-  active-count and remaining-balance subtotal.
+The app has two modes, switched with the toggle at the top:
+
+- **Use vouchers** (default, opens first every time) — for checkout. Shows
+  your vouchers grouped by store. Tap one to see its barcode, PIN, and
+  balance, and to record what you just spent. This mode can't add, edit, or
+  rename vouchers — it's deliberately kept to just viewing and spending, so
+  there's nothing to fumble while you're at the register.
+- **Add vouchers** — for setting things up or cleaning up. Add a new
+  voucher (choose or type the store, then value, PIN, purchase date, and a
+  barcode photo), or edit/delete any existing voucher from the list below.
+
+**Deleting expired vouchers**: once a voucher's balance hits zero it's
+marked EXPIRED automatically. You can remove expired ones two ways —
+tap "clear N expired" in the Use-mode summary line (or the equivalent
+button in Add mode) to wipe all of them at once, or open a single expired
+voucher in Use mode and tap "Delete this voucher" to remove just that one.
+Non-expired vouchers can only be deleted from Add mode, as a safeguard
+against removing one by accident while you're still using it.
+
+- **Add a voucher**: switch to Add mode → "+ Add a new voucher" → choose
+  or type the store (Coles, Myer, etc. — start typing for suggestions),
+  then enter the value, PIN, purchase date, and a photo of the barcode
+  (camera or photo library). The dashboard groups vouchers under their
+  store, each with its own active-count and remaining-balance subtotal.
 - **At checkout**: open the voucher, tap the barcode photo — it opens
   full-screen on a white background with the balance and a PIN reveal
   button underneath, ready to scan.
