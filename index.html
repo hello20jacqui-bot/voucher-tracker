@@ -230,6 +230,13 @@ function b64DecodeUnicode(b64){
 }
 
 /* ---------------- GitHub API ---------------- */
+function ghCheckRepo(cfg){
+  var url=GH_API+'/repos/'+encodeURIComponent(cfg.owner)+'/'+encodeURIComponent(cfg.repo);
+  return fetch(url,{headers:{Authorization:'Bearer '+cfg.token, Accept:'application/vnd.github+json'}}).then(function(res){
+    if(!res.ok){ return res.json().catch(function(){return {};}).then(function(j){ throw new Error(friendlyGhError(res.status, j.message)); }); }
+    return res.json();
+  });
+}
 function ghGetFile(cfg){
   var url=GH_API+'/repos/'+encodeURIComponent(cfg.owner)+'/'+encodeURIComponent(cfg.repo)+'/contents/'+encodeURIComponent(cfg.path)+(cfg.branch?('?ref='+encodeURIComponent(cfg.branch)):'');
   return fetch(url,{headers:{Authorization:'Bearer '+cfg.token, Accept:'application/vnd.github+json'}}).then(function(res){
@@ -257,8 +264,8 @@ function ghPutFile(cfg, dataObj, sha, message){
 }
 function friendlyGhError(status, detail){
   if(status===401) return 'That access token was rejected. Check it in Settings.';
-  if(status===404) return "Can't find that repository — check the owner and repo name in Settings.";
-  if(status===403) return 'GitHub blocked the request (rate limit or missing permission).';
+  if(status===404) return "Can't find that repository. Check the owner/repo name in Settings, that the repo exists, and — if it's not your own — that you've accepted the collaborator invite.";
+  if(status===403) return "GitHub blocked the request — the token may not have Contents: Read and write permission on this repo, or you've hit a rate limit.";
   return 'GitHub error ('+status+')'+(detail?': '+detail:'');
 }
 
@@ -820,7 +827,7 @@ function onSubmitSettingsForm(e){
   };
   var btn=f.querySelector('button[type=submit]');
   btn.disabled=true; btn.textContent='Connecting…';
-  ghGetFile(cfg).then(function(res){
+  ghCheckRepo(cfg).then(function(){ return ghGetFile(cfg); }).then(function(res){
     saveConfigLS(cfg);
     state.config=cfg;
     state.vouchers=res.data.vouchers||[];

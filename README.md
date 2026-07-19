@@ -118,6 +118,35 @@ against removing one by accident while you're still using it.
   (top right) if you want to double-check you're seeing the other person's
   latest update; the app also auto-refreshes whenever you reopen it.
 
+## Troubleshooting
+
+**"Can't find that repository — check the owner and repo name in Settings"**
+This means GitHub couldn't find the repo *or* the token can't see it (GitHub
+returns the same error for both, to avoid revealing private repos exist).
+Check, in order:
+
+1. **Owner** in Settings is the exact GitHub username that owns the private
+   data repo — not a display name, and not necessarily *your* username if
+   your friend owns it.
+2. **Data repo name** is spelled exactly right, with no `.git` suffix and
+   no owner prefix (just `voucher-data`, not `username/voucher-data`).
+3. The repo actually exists — open `github.com/<owner>/<repo>` in a browser
+   and confirm it loads.
+4. **If this is the second phone**, the invited collaborator must actually
+   **accept the invite** (check email or github.com notifications) — until
+   accepted, their token gets exactly this error, as if the repo doesn't
+   exist.
+5. The **personal access token** was created with *Repository access: Only
+   select repositories* → this exact repo selected, and **Contents: Read
+   and write** permission ticked. A token scoped to the wrong repo, the
+   wrong account, or with no repo selected will also produce this error.
+6. The token hasn't expired (fine-grained tokens can have short default
+   expirations — check under Developer settings → Personal access tokens).
+
+The app now checks repo access as its own step when you hit **Connect**, so
+this error should appear right away if something's off, rather than only
+showing up later when you try to save a voucher.
+
 ## Things worth knowing
 
 - **No offline mode.** Every open/save talks to GitHub, so you'll need
