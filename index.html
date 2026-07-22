@@ -15,30 +15,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
-<!-- Firebase SDKs (compat for plain JS) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <style>
   :root{
-    --color-bg:#F3F6F1;
-    --color-paper:#FFFFFF;
-    --color-ink:#1A1D1B;
-    --color-ink-soft:#5B6660;
-    --color-primary:#1F5C4A;
-    --color-primary-dark:#153F33;
-    --color-new:#4C6685;
-    --color-inuse:#1F5C4A;
-    --color-expired:#A24936;
-    --color-border:#DEE4D9;
-    --color-admin:#8B5C1A;
-    --font-display:'Space Grotesk',sans-serif;
-    --font-body:'Inter',sans-serif;
-    --font-mono:'IBM Plex Mono',monospace;
-    --radius:16px;
-    --shadow:0 2px 10px rgba(20,30,25,0.07),0 1px 2px rgba(20,30,25,0.06);
-    --safe-top:env(safe-area-inset-top);
-    --safe-bottom:env(safe-area-inset-bottom);
+    --color-bg:#F3F6F1;--color-paper:#FFFFFF;--color-ink:#1A1D1B;--color-ink-soft:#5B6660;
+    --color-primary:#1F5C4A;--color-primary-dark:#153F33;--color-new:#4C6685;
+    --color-inuse:#1F5C4A;--color-expired:#A24936;--color-border:#DEE4D9;--color-admin:#8B5C1A;
+    --font-display:'Space Grotesk',sans-serif;--font-body:'Inter',sans-serif;--font-mono:'IBM Plex Mono',monospace;
+    --radius:16px;--shadow:0 2px 10px rgba(20,30,25,0.07),0 1px 2px rgba(20,30,25,0.06);
+    --safe-top:env(safe-area-inset-top);--safe-bottom:env(safe-area-inset-bottom);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{margin:0;padding:0;background:var(--color-bg);color:var(--color-ink);font-family:var(--font-body);-webkit-font-smoothing:antialiased;}
@@ -49,10 +36,7 @@
   input,select{font-family:inherit;}
   .tabular{font-variant-numeric:tabular-nums;}
   ::selection{background:var(--color-primary);color:#fff;}
-
   #app{max-width:520px;margin:0 auto;padding-bottom:calc(96px + var(--safe-bottom));min-height:100vh;min-height:100dvh;position:relative;}
-
-  /* ---------- Header ---------- */
   .topbar{position:sticky;top:0;z-index:20;background:var(--color-bg);padding:calc(18px + var(--safe-top)) 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
   .topbar h1{font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .topbar-actions{display:flex;align-items:center;gap:6px;}
@@ -62,25 +46,18 @@
   .sync-row{display:flex;align-items:center;gap:6px;padding:0 20px 14px;font-family:var(--font-mono);font-size:11.5px;color:var(--color-ink-soft);}
   .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--color-ink-soft);flex-shrink:0;}
   .sync-dot.live{background:var(--color-primary);animation:pulse 2s infinite ease-in-out;}
-  .sync-dot.synced{background:var(--color-primary);}
   .sync-dot.syncing{background:#C99A2E;animation:pulse 1s infinite ease-in-out;}
   .sync-dot.error{background:var(--color-expired);}
   .sync-dot.offline{background:var(--color-ink-soft);}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
-
   .admin-banner{margin:0 20px 12px;padding:10px 14px;background:#FEF3E2;border:1.5px solid #E0B868;border-radius:10px;font-family:var(--font-mono);font-size:11.5px;color:var(--color-admin);display:flex;align-items:center;gap:8px;font-weight:600;}
   .admin-banner svg{width:15px;height:15px;flex-shrink:0;}
-
   .summary{padding:0 20px 18px;font-size:13.5px;color:var(--color-ink-soft);}
   .summary b{color:var(--color-ink);font-family:var(--font-mono);font-weight:600;}
   .link-btn{border:none;background:none;padding:0;margin:0;color:var(--color-expired);font-family:var(--font-mono);font-size:12.5px;font-weight:600;text-decoration:underline;}
-
-  /* ---------- Mode switch ---------- */
   .mode-switch{display:flex;gap:4px;margin:0 20px 18px;background:var(--color-paper);border:1px solid var(--color-border);border-radius:13px;padding:4px;box-shadow:var(--shadow);}
   .mode-btn{flex:1;border:none;background:transparent;padding:10px 2px;border-radius:10px;font-family:var(--font-body);font-weight:600;font-size:12.5px;color:var(--color-ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .mode-btn.active{background:var(--color-primary);color:#fff;}
-
-  /* ---------- Summary dashboard ---------- */
   .stat-row{display:flex;gap:12px;margin-bottom:18px;}
   .stat-tile{flex:1;background:var(--color-paper);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;}
   .stat-tile .label{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-ink-soft);margin-bottom:6px;}
@@ -108,15 +85,11 @@
   .store-bar-top .amt{font-family:var(--font-mono);font-weight:600;color:var(--color-primary-dark);}
   .store-bar-track{height:8px;border-radius:4px;background:var(--color-bg);border:1px solid var(--color-border);overflow:hidden;}
   .store-bar-fill{height:100%;background:var(--color-primary);border-radius:4px;}
-
-  /* ---------- Store grouping ---------- */
   .store-group{margin-bottom:8px;}
   .store-group-header{display:flex;align-items:baseline;justify-content:space-between;padding:16px 20px 10px;}
   .store-group-header h3{font-family:var(--font-display);font-size:15px;font-weight:700;}
   .store-group-header .sub{font-family:var(--font-mono);font-size:11px;color:var(--color-ink-soft);white-space:nowrap;}
   .vc-store{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--color-ink-soft);margin-bottom:3px;}
-
-  /* ---------- Voucher card (ticket) ---------- */
   .list{padding:0 20px;display:flex;flex-direction:column;gap:16px;}
   .voucher-card{background:var(--color-paper);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 20px;position:relative;overflow:hidden;text-align:left;width:100%;}
   .voucher-card::before,.voucher-card::after{content:'';position:absolute;width:20px;height:20px;background:var(--color-bg);border-radius:50%;top:50%;transform:translateY(-50%);border:1px solid var(--color-border);}
@@ -137,12 +110,9 @@
   .vc-initial{font-family:var(--font-mono);font-size:12.5px;color:var(--color-ink-soft);}
   .manage-actions{display:flex;gap:10px;margin-top:14px;}
   .manage-actions .btn{flex:1;padding:10px 14px;font-size:13.5px;}
-
   .empty{margin:40px 20px;padding:34px 22px;background:var(--color-paper);border:1px dashed var(--color-border);border-radius:var(--radius);text-align:center;}
   .empty h2{font-size:17px;margin-bottom:8px;}
   .empty p{font-size:13.5px;color:var(--color-ink-soft);line-height:1.5;margin-bottom:18px;}
-
-  /* ---------- Buttons ---------- */
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:12px;border:none;padding:13px 18px;font-weight:600;font-size:14.5px;font-family:var(--font-body);}
   .btn-primary{background:var(--color-primary);color:#fff;}
   .btn-primary:active{background:var(--color-primary-dark);}
@@ -150,15 +120,11 @@
   .btn-danger{background:#fff;color:var(--color-expired);border:1px solid #E7C6BC;}
   .btn-block{width:100%;}
   .btn:disabled{opacity:0.55;}
-
-  /* ---------- Forms ---------- */
   .screen{padding:4px 20px 40px;}
   .field{margin-bottom:18px;}
   .field label{display:block;font-size:12.5px;font-weight:600;color:var(--color-ink-soft);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;}
-  .field input[type=text],.field input[type=number],.field input[type=date],.field input[type=password]{
-    width:100%;padding:13px 14px;border-radius:11px;border:1px solid var(--color-border);background:var(--color-paper);font-size:16px;color:var(--color-ink);font-family:var(--font-mono);
-  }
-  .field input:focus,.field select:focus{outline:2px solid var(--color-primary);outline-offset:1px;}
+  .field input[type=text],.field input[type=number],.field input[type=date],.field input[type=password]{width:100%;padding:13px 14px;border-radius:11px;border:1px solid var(--color-border);background:var(--color-paper);font-size:16px;color:var(--color-ink);font-family:var(--font-mono);}
+  .field input:focus{outline:2px solid var(--color-primary);outline-offset:1px;}
   .field .hint{font-size:12px;color:var(--color-ink-soft);margin-top:6px;font-family:var(--font-body);}
   .field-row{display:flex;gap:12px;}
   .field-row .field{flex:1;}
@@ -171,8 +137,6 @@
   .back-row{display:flex;align-items:center;gap:8px;padding:14px 20px 6px;}
   .back-row .icon-btn{box-shadow:none;}
   .back-row h2{font-size:18px;}
-
-  /* ---------- Detail / checkout ---------- */
   .barcode-frame{background:#fff;border:1px solid var(--color-border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);text-align:center;}
   .barcode-frame img{max-width:100%;max-height:150px;object-fit:contain;}
   .barcode-frame .tap-hint{font-size:11.5px;color:var(--color-ink-soft);margin-top:10px;}
@@ -183,7 +147,6 @@
   .detail-row:last-child{border-bottom:none;}
   .detail-row .k{color:var(--color-ink-soft);}
   .detail-row .v{font-family:var(--font-mono);font-weight:600;}
-
   .ledger{margin-top:24px;}
   .ledger h3{font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-ink-soft);margin-bottom:10px;}
   .ledger-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px dashed var(--color-border);gap:8px;}
@@ -192,11 +155,8 @@
   .ledger-row .after{font-family:var(--font-mono);font-size:13px;font-weight:600;text-align:right;width:78px;flex-shrink:0;}
   .ledger-row .del{border:none;background:transparent;color:var(--color-ink-soft);font-size:16px;padding:2px 6px;flex-shrink:0;}
   .ledger-empty{font-size:13px;color:var(--color-ink-soft);padding:14px 0;}
-
   .add-txn{margin-top:22px;background:var(--color-paper);border:1px solid var(--color-border);border-radius:var(--radius);padding:16px;}
   .add-txn h3{font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-ink-soft);margin-bottom:12px;}
-
-  /* ---------- Checkout fullscreen overlay ---------- */
   .overlay{position:fixed;inset:0;background:#fff;z-index:100;display:flex;flex-direction:column;padding:calc(18px + var(--safe-top)) 22px calc(28px + var(--safe-bottom));}
   .overlay-close{align-self:flex-end;width:36px;height:36px;border-radius:50%;border:1px solid var(--color-border);background:#fff;display:flex;align-items:center;justify-content:center;}
   .overlay-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;}
@@ -205,20 +165,15 @@
   .overlay-balance{font-family:var(--font-mono);font-weight:700;font-size:38px;color:var(--color-primary-dark);}
   .overlay-pin{display:flex;align-items:center;gap:10px;font-family:var(--font-mono);font-size:22px;letter-spacing:3px;}
   .overlay-pin button{border:1px solid var(--color-border);background:#fff;border-radius:8px;padding:6px 12px;font-size:12px;font-family:var(--font-body);color:var(--color-primary);}
-
-  /* ---------- Settings / onboarding ---------- */
   .card{background:var(--color-paper);border:1px solid var(--color-border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
   .lead{font-size:14px;color:var(--color-ink-soft);line-height:1.55;margin-bottom:20px;}
   .steps{margin:0 0 20px;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;}
   .steps li{display:flex;gap:10px;font-size:13.5px;color:var(--color-ink-soft);line-height:1.5;}
   .steps li b{color:var(--color-ink);font-family:var(--font-mono);}
-
-  /* ---------- Toast ---------- */
   .toast{position:fixed;left:20px;right:20px;bottom:calc(24px + var(--safe-bottom));z-index:200;background:var(--color-ink);color:#fff;padding:13px 16px;border-radius:12px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,0.25);animation:toast-in 0.18s ease-out;}
   .toast.error{background:var(--color-expired);}
   .toast.warning{background:var(--color-admin);}
   @keyframes toast-in{from{transform:translateY(8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-
   @media (prefers-reduced-motion:reduce){*{animation-duration:0.001ms !important;}}
 </style>
 </head>
@@ -231,76 +186,62 @@
 var CONFIG_KEY='voucherFirebaseConfig_v1';
 
 var state={
-  mode:'use',
-  view:'useDashboard',
-  config:null,       /* {apiKey, authDomain, databaseURL, projectId, roomCode} */
-  vouchers:[],
-  deletedIds:{},
-  activeVoucherId:null,
-  editingVoucherId:null,
-  photoDraft:null,
-  syncStatus:'offline',
-  lastSynced:null,
-  checkoutId:null,
-  pinRevealed:{}
+  mode:'use',view:'useDashboard',config:null,
+  vouchers:[],deletedIds:{},
+  activeVoucherId:null,editingVoucherId:null,photoDraft:null,
+  syncStatus:'offline',lastSynced:null,checkoutId:null,pinRevealed:{}
 };
 
-var db=null;         /* Firebase database ref */
-var dataRef=null;    /* ref to /rooms/{roomCode} */
-var unsubscribe=null;/* listener cleanup */
+var db=null, dataRef=null, unsubscribe=null;
 
-/* ---------------- admin mode ---------------- */
-function isAdmin(){
-  return window.location.hash==='#admin' || (new URLSearchParams(window.location.search)).get('admin')==='1';
-}
-
-/* ---------------- local config storage ---------------- */
-function loadConfig(){ try{ var raw=localStorage.getItem(CONFIG_KEY); return raw?JSON.parse(raw):null; }catch(e){ return null; } }
-function saveConfigLS(cfg){ localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
+function isAdmin(){ return window.location.hash==='#admin'||(new URLSearchParams(window.location.search)).get('admin')==='1'; }
+function loadConfig(){ try{ var r=localStorage.getItem(CONFIG_KEY); return r?JSON.parse(r):null; }catch(e){ return null; } }
+function saveConfigLS(cfg){ localStorage.setItem(CONFIG_KEY,JSON.stringify(cfg)); }
 function clearConfigLS(){ localStorage.removeItem(CONFIG_KEY); }
-function clone(x){ return typeof structuredClone==='function' ? structuredClone(x) : JSON.parse(JSON.stringify(x)); }
+function clone(x){ return typeof structuredClone==='function'?structuredClone(x):JSON.parse(JSON.stringify(x)); }
 
-/* ---------------- domain logic ---------------- */
+/* ---------------- domain ---------------- */
 function round2(n){ return Math.round((Number(n)+Number.EPSILON)*100)/100; }
-function uid(){ return (typeof crypto!=='undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(16).slice(2); }
+function uid(){ return crypto.randomUUID?crypto.randomUUID():'id-'+Date.now()+'-'+Math.random().toString(16).slice(2); }
 function fmtMoney(n){ var v=round2(n); return '$'+v.toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function fmtDate(iso){ if(!iso) return ''; var d=new Date(iso+'T00:00:00'); return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
-function fmtDateTime(ts){ if(!ts) return ''; var d=new Date(ts); return d.toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})+', '+d.toLocaleTimeString('en-AU',{hour:'numeric',minute:'2-digit'}); }
+function fmtDate(iso){ if(!iso) return ''; return new Date(iso+'T00:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
 function relTime(ts){
   if(!ts) return 'never';
   var s=Math.floor((Date.now()-ts)/1000);
-  if(s<10) return 'just now';
-  if(s<60) return s+'s ago';
+  if(s<10) return 'just now'; if(s<60) return s+'s ago';
   var m=Math.floor(s/60); if(m<60) return m+'m ago';
   var h=Math.floor(m/60); if(h<24) return h+'h ago';
-  var d=Math.floor(h/24); return d+'d ago';
+  return Math.floor(h/24)+'d ago';
 }
 function getVoucher(id){ for(var i=0;i<state.vouchers.length;i++){ if(state.vouchers[i].id===id) return state.vouchers[i]; } return null; }
-function voucherTitle(v){ return (v.label && v.label.trim()) ? v.label.trim() : 'Voucher'; }
-function voucherStore(v){ return (v.store && v.store.trim()) ? v.store.trim() : 'Other'; }
+function voucherTitle(v){ return (v.label&&v.label.trim())?v.label.trim():'Voucher'; }
+function voucherStore(v){ return (v.store&&v.store.trim())?v.store.trim():'Other'; }
+
+/* THE FIX: always use (v.transactions||[]) — never v.transactions directly */
 function computeVoucher(v){
-  var txns=(v.transactions||[]).slice().sort(function(a,b){ if(a.date===b.date) return (a.ts||0)-(b.ts||0); return a.date<b.date?-1:1; });
+  var txns=(v.transactions||[]).slice().sort(function(a,b){
+    if(a.date===b.date) return (a.ts||0)-(b.ts||0);
+    return a.date<b.date?-1:1;
+  });
   var cumulative=0, withRunning=[];
   for(var i=0;i<txns.length;i++){
     cumulative=round2(cumulative+Number(txns[i].amount));
-    withRunning.push({id:txns[i].id, date:txns[i].date, amount:Number(txns[i].amount), balanceAfter:round2(v.initialValue-cumulative)});
+    withRunning.push({id:txns[i].id,date:txns[i].date,amount:Number(txns[i].amount),balanceAfter:round2(v.initialValue-cumulative)});
   }
   var balance=round2(v.initialValue-cumulative);
-  var status = v.transactions.length===0 ? 'NEW' : (balance<=0 ? 'EXPIRED' : 'IN-USE');
-  var ledgerDesc=withRunning.slice().reverse();
-  return {spent:cumulative, balance:balance, status:status, ledger:ledgerDesc};
+  var txnLen=(v.transactions||[]).length;  /* safe length check */
+  var status=txnLen===0?'NEW':(balance<=0?'EXPIRED':'IN-USE');
+  return {spent:cumulative,balance:balance,status:status,ledger:withRunning.slice().reverse()};
 }
 function statusRank(s){ return s==='IN-USE'?0:(s==='NEW'?1:2); }
 function statusClass(s){ return s==='IN-USE'?'inuse':(s==='NEW'?'new':'expired'); }
 
-/* ---------------- summary / analytics ---------------- */
+/* ---------------- analytics ---------------- */
 function allTransactionsFlat(){
   var out=[];
   state.vouchers.forEach(function(v){
     var store=voucherStore(v);
-    (v.transactions||[]).forEach(function(t){
-      out.push({date:t.date, amount:Number(t.amount), store:store});
-    });
+    (v.transactions||[]).forEach(function(t){ out.push({date:t.date,amount:Number(t.amount),store:store}); });
   });
   return out;
 }
@@ -308,56 +249,36 @@ function parseISODate(iso){ return new Date(iso+'T00:00:00'); }
 function addDays(d,n){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n); }
 function startOfWeek(d){ var day=(d.getDay()+6)%7; return new Date(d.getFullYear(),d.getMonth(),d.getDate()-day); }
 function fmtShortDate(d){ return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
-function fmtWeekRange(s,e){ return fmtShortDate(s)+' – '+fmtShortDate(e); }
+function fmtWeekRange(s,e){ return fmtShortDate(s)+' \u2013 '+fmtShortDate(e); }
 function fmtMonthLabel(d){ return d.toLocaleDateString('en-AU',{month:'short',year:'2-digit'}); }
 function fmtMonthFull(d){ return d.toLocaleDateString('en-AU',{month:'long',year:'numeric'}); }
 function buildWeekBuckets(n){
-  var curStart=startOfWeek(new Date());
-  var buckets=[];
-  for(var i=n-1;i>=0;i--){
-    var s=addDays(curStart,-7*i);
-    var e=addDays(s,6);
-    buckets.push({start:s,end:e,label:fmtShortDate(s),full:fmtWeekRange(s,e),total:0});
-  }
+  var cs=startOfWeek(new Date()),buckets=[];
+  for(var i=n-1;i>=0;i--){ var s=addDays(cs,-7*i),e=addDays(s,6); buckets.push({start:s,end:e,label:fmtShortDate(s),full:fmtWeekRange(s,e),total:0}); }
   return buckets;
 }
 function buildMonthBuckets(n){
-  var today=new Date();
-  var buckets=[];
-  for(var i=n-1;i>=0;i--){
-    var d=new Date(today.getFullYear(), today.getMonth()-i, 1);
-    var e=new Date(d.getFullYear(), d.getMonth()+1, 0);
-    buckets.push({start:d,end:e,label:fmtMonthLabel(d),full:fmtMonthFull(d),total:0});
-  }
+  var today=new Date(),buckets=[];
+  for(var i=n-1;i>=0;i--){ var d=new Date(today.getFullYear(),today.getMonth()-i,1),e=new Date(d.getFullYear(),d.getMonth()+1,0); buckets.push({start:d,end:e,label:fmtMonthLabel(d),full:fmtMonthFull(d),total:0}); }
   return buckets;
 }
-function fillBuckets(buckets, txns){
+function fillBuckets(buckets,txns){
   txns.forEach(function(t){
     var d=parseISODate(t.date);
     for(var i=0;i<buckets.length;i++){
-      if(d.getTime()>=buckets[i].start.getTime() && d.getTime()<=buckets[i].end.getTime()){
-        buckets[i].total=round2(buckets[i].total+t.amount);
-        break;
-      }
+      if(d>=buckets[i].start&&d<=buckets[i].end){ buckets[i].total=round2(buckets[i].total+t.amount); break; }
     }
   });
   return buckets;
 }
-function storeBreakdownInRange(txns, rangeStart, rangeEnd){
+function storeBreakdownInRange(txns,rs,re){
   var map={};
-  txns.forEach(function(t){
-    var d=parseISODate(t.date);
-    if(d.getTime()>=rangeStart.getTime() && d.getTime()<=rangeEnd.getTime()){
-      map[t.store]=round2((map[t.store]||0)+t.amount);
-    }
-  });
-  var arr=Object.keys(map).map(function(k){ return {store:k, total:map[k]}; });
-  arr.sort(function(a,b){ return b.total-a.total; });
-  return arr;
+  txns.forEach(function(t){ var d=parseISODate(t.date); if(d>=rs&&d<=re) map[t.store]=round2((map[t.store]||0)+t.amount); });
+  return Object.keys(map).map(function(k){ return {store:k,total:map[k]}; }).sort(function(a,b){ return b.total-a.total; });
 }
 
 /* ---------------- image compression ---------------- */
-function compressImage(file, maxWidth, quality){
+function compressImage(file,maxWidth,quality){
   return new Promise(function(resolve,reject){
     var reader=new FileReader();
     reader.onerror=function(){ reject(new Error('Could not read that photo.')); };
@@ -365,14 +286,12 @@ function compressImage(file, maxWidth, quality){
       var img=new Image();
       img.onerror=function(){ reject(new Error('Could not read that photo.')); };
       img.onload=function(){
-        var scale=Math.min(1, maxWidth/img.width);
-        var w=Math.round(img.width*scale), h=Math.round(img.height*scale);
+        var scale=Math.min(1,maxWidth/img.width),w=Math.round(img.width*scale),h=Math.round(img.height*scale);
         var canvas=document.createElement('canvas');
         canvas.width=w; canvas.height=h;
         var ctx=canvas.getContext('2d');
-        ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
-        ctx.drawImage(img,0,0,w,h);
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h); ctx.drawImage(img,0,0,w,h);
+        resolve(canvas.toDataURL('image/jpeg',quality));
       };
       img.src=reader.result;
     };
@@ -380,118 +299,80 @@ function compressImage(file, maxWidth, quality){
   });
 }
 
-/* ================================================================
-   FIREBASE — real-time sync
-   ================================================================
-   Data lives in Firebase Realtime Database at:
-     /rooms/{roomCode}/vouchers   — array of voucher objects
-     /rooms/{roomCode}/deletedIds — object of {id: true}
-
-   A single onValue listener keeps both phones in sync instantly.
-   Every write goes straight to Firebase; if it succeeds, the
-   listener fires on both phones and updates the UI automatically.
-   ================================================================ */
-
+/* ---------------- Firebase ---------------- */
 function initFirebase(cfg){
-  if(db) return; /* already initialised */
-  try{
-    firebase.initializeApp({
-      apiKey: cfg.apiKey,
-      authDomain: cfg.authDomain,
-      databaseURL: cfg.databaseURL,
-      projectId: cfg.projectId
-    });
-  }catch(e){
-    /* Already initialised (e.g. hot reload) — that's fine */
-  }
+  if(db) return;
+  try{ firebase.initializeApp({apiKey:cfg.apiKey,authDomain:cfg.authDomain,databaseURL:cfg.databaseURL,projectId:cfg.projectId}); }catch(e){}
   db=firebase.database();
-  /* Enable disk persistence so data is available offline */
-  try{ db.goOnline(); }catch(e){}
 }
 
 function startListening(cfg){
   if(unsubscribe){ unsubscribe(); unsubscribe=null; }
   var roomCode=cfg.roomCode.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'');
   dataRef=db.ref('rooms/'+roomCode);
-  console.log('Firebase: Listening at', 'rooms/'+roomCode);
 
-  /* Sign in anonymously (required for database rules) */
   firebase.auth().signInAnonymously().then(function(res){
-    console.log('Firebase: Authenticated as', res.user.uid);
+    console.log('Firebase: auth ok', res.user.uid);
   }).catch(function(err){
     console.error('Firebase auth error:', err.code, err.message);
     showToast('Auth failed: '+err.message,'error');
   });
 
-  /* Real-time listener — fires on every change from any phone */
-  var callback=dataRef.on('value', function(snapshot){
-    var val=snapshot.val()||{};
-    state.vouchers=(val.vouchers||[]).filter(function(v){ return v && v.id; });
+  var cb=dataRef.on('value',function(snap){
+    var val=snap.val()||{};
+    /* Normalise: ensure every voucher has a transactions array */
+    state.vouchers=(val.vouchers||[]).filter(function(v){ return v&&v.id; }).map(function(v){
+      v.transactions=v.transactions||[];
+      return v;
+    });
     state.deletedIds=val.deletedIds||{};
     state.syncStatus='live';
     state.lastSynced=Date.now();
     render();
-  }, function(err){
+  },function(err){
     state.syncStatus='error';
     showToast('Sync error: '+err.message,'error');
     render();
   });
+  unsubscribe=function(){ dataRef.off('value',cb); };
 
-  unsubscribe=function(){ dataRef.off('value', callback); };
-
-  /* Track connection state */
-  var connRef=db.ref('.info/connected');
-  connRef.on('value', function(snap){
-    if(snap.val()===true){
-      if(state.syncStatus==='offline') state.syncStatus='live';
-    } else {
-      state.syncStatus='offline';
-    }
+  db.ref('.info/connected').on('value',function(snap){
+    if(snap.val()===true){ if(state.syncStatus==='offline') state.syncStatus='live'; }
+    else{ state.syncStatus='offline'; }
     render();
   });
 }
 
-/* Write the full dataset to Firebase */
 function stripUndefined(obj){
-  /* Firebase rejects undefined anywhere in the tree — recursively replace with null */
   if(obj===undefined) return null;
-  if(obj===null || typeof obj!=='object') return obj;
+  if(obj===null||typeof obj!=='object') return obj;
   if(Array.isArray(obj)) return obj.map(stripUndefined);
   var out={};
   Object.keys(obj).forEach(function(k){ out[k]=stripUndefined(obj[k]); });
   return out;
 }
-function writeToFirebase(vouchers, deletedIds){
-  if(!dataRef){
-    showToast('Not connected to Firebase.','error');
-    console.error('Firebase: dataRef is null');
-    return Promise.resolve(false);
-  }
-  if(!firebase.auth().currentUser){
-    showToast('Not authenticated. Refresh the page.','error');
-    console.error('Firebase: Not authenticated');
-    return Promise.resolve(false);
-  }
+
+function writeToFirebase(vouchers,deletedIds){
+  if(!dataRef){ showToast('Not connected to Firebase.','error'); return Promise.resolve(false); }
+  if(!firebase.auth().currentUser){ showToast('Not authenticated — refresh and try again.','error'); return Promise.resolve(false); }
   state.syncStatus='syncing';
   render();
   var clean=stripUndefined(vouchers.map(function(v){
     var c=clone(v);
-    if(!c.transactions) c.transactions=[];
+    c.transactions=c.transactions||[];
     return c;
   }));
-  console.log('Firebase: Writing', clean.length, 'vouchers');
   return dataRef.set({
-    vouchers: clean,
-    deletedIds: deletedIds||state.deletedIds||{},
-    lastUpdated: firebase.database.ServerValue.TIMESTAMP
+    vouchers:clean,
+    deletedIds:deletedIds||state.deletedIds||{},
+    lastUpdated:firebase.database.ServerValue.TIMESTAMP
   }).then(function(){
-    console.log('Firebase: Write succeeded');
     state.syncStatus='live';
     state.lastSynced=Date.now();
     render();
     return true;
   }).catch(function(err){
-    console.error('Firebase write error:', err.code, err.message);
+    console.error('Firebase write error:',err.code,err.message);
     state.syncStatus='error';
     showToast('Save failed: '+err.message,'error');
     render();
@@ -499,23 +380,16 @@ function writeToFirebase(vouchers, deletedIds){
   });
 }
 
-/* Persist a mutation: apply locally, write to Firebase */
-function persist(mutator, opts){
+function persist(mutator,opts){
   opts=opts||{};
   var next=mutator(clone(state.vouchers));
   var dels=clone(state.deletedIds);
-
   if(opts.deletedId) dels[opts.deletedId]=true;
-  if(opts.deletedIds){
-    opts.deletedIds.forEach(function(id){ dels[id]=true; });
-  }
-
-  /* Optimistic local update */
+  if(opts.deletedIds) opts.deletedIds.forEach(function(id){ dels[id]=true; });
   state.vouchers=next;
   state.deletedIds=dels;
   render();
-
-  return writeToFirebase(next, dels);
+  return writeToFirebase(next,dels);
 }
 
 function initialLoad(){
@@ -528,23 +402,19 @@ function initialLoad(){
 
 /* ---------------- toast ---------------- */
 var toastTimer=null;
-function showToast(msg, type){
-  var existing=document.querySelector('.toast'); if(existing) existing.remove();
+function showToast(msg,type){
+  var ex=document.querySelector('.toast'); if(ex) ex.remove();
   var el=document.createElement('div');
-  el.className='toast'+(type==='error'?' error':(type==='warning'?' warning':''));
+  el.className='toast'+(type==='error'?' error':type==='warning'?' warning':'');
   el.textContent=msg;
   document.body.appendChild(el);
   clearTimeout(toastTimer);
-  toastTimer=setTimeout(function(){ el.remove(); }, 3800);
+  toastTimer=setTimeout(function(){ el.remove(); },3800);
 }
 
-/* ================================================================
-   RENDERING — identical UI, powered by Firebase
-   ================================================================ */
+/* ---------------- rendering ---------------- */
 var appEl;
-function goHome(){
-  state.view = state.mode==='add' ? 'addHome' : (state.mode==='summary' ? 'summaryDashboard' : 'useDashboard');
-}
+function goHome(){ state.view=state.mode==='add'?'addHome':(state.mode==='summary'?'summaryDashboard':'useDashboard'); }
 function render(){
   var html='';
   if(state.view==='settings') html=renderSettings();
@@ -554,44 +424,27 @@ function render(){
   else if(state.view==='addHome') html=renderAddHome();
   else if(state.view==='summaryDashboard') html=renderSummaryDashboard();
   else html=renderUseDashboard();
-
   appEl.innerHTML=html;
-
-  if(state.checkoutId){
-    var v=getVoucher(state.checkoutId);
-    if(v) appEl.insertAdjacentHTML('beforeend', renderCheckoutOverlay(v));
-  }
+  if(state.checkoutId){ var v=getVoucher(state.checkoutId); if(v) appEl.insertAdjacentHTML('beforeend',renderCheckoutOverlay(v)); }
   attachEvents();
 }
 
 function renderAdminBanner(){
   if(!isAdmin()) return '';
-  return '<div class="admin-banner">'+
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'+
-    'Admin mode — delete actions enabled'+
-  '</div>';
+  return '<div class="admin-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Admin mode — delete actions enabled</div>';
 }
 
-function renderTopbar(title, showBack){
-  var syncCls = state.syncStatus;
-  var syncLabel = state.syncStatus==='live' ? 'Live · synced '+relTime(state.lastSynced)
-    : (state.syncStatus==='syncing' ? 'Saving…'
-    : (state.syncStatus==='error' ? 'Connection lost'
-    : (state.syncStatus==='offline' ? 'Offline — waiting for connection'
-    : 'Not connected')));
-  var left = showBack
-    ? '<button class="icon-btn" data-action="go-home" aria-label="Back">'+iconBack()+'</button>'
-    : '<h1>'+escapeHtml(title)+'</h1>';
-  var isHome = state.view==='useDashboard' || state.view==='addHome' || state.view==='summaryDashboard';
-  return ''+
-  '<div class="topbar">'+
-    left+
-    '<div class="topbar-actions">'+
-      '<button class="icon-btn" data-action="go-settings" aria-label="Settings">'+iconSettings()+'</button>'+
-    '</div>'+
-  '</div>'+
-  (isHome ? '<div class="sync-row"><span class="sync-dot '+syncCls+'"></span><span>'+syncLabel+'</span></div>' : '')+
-  (isHome ? renderAdminBanner() : '');
+function renderTopbar(title,showBack){
+  var syncCls=state.syncStatus;
+  var syncLabel=state.syncStatus==='live'?'Live \u00b7 synced '+relTime(state.lastSynced)
+    :(state.syncStatus==='syncing'?'Saving\u2026'
+    :(state.syncStatus==='error'?'Connection lost'
+    :(state.syncStatus==='offline'?'Offline \u2014 waiting for connection':'Not connected')));
+  var left=showBack?'<button class="icon-btn" data-action="go-home" aria-label="Back">'+iconBack()+'</button>':'<h1>'+escapeHtml(title)+'</h1>';
+  var isHome=state.view==='useDashboard'||state.view==='addHome'||state.view==='summaryDashboard';
+  return '<div class="topbar">'+left+'<div class="topbar-actions"><button class="icon-btn" data-action="go-settings" aria-label="Settings">'+iconSettings()+'</button></div></div>'+
+    (isHome?'<div class="sync-row"><span class="sync-dot '+syncCls+'"></span><span>'+syncLabel+'</span></div>':'')+
+    (isHome?renderAdminBanner():'');
 }
 
 function renderModeSwitch(){
@@ -604,329 +457,169 @@ function renderModeSwitch(){
 
 function groupByStore(list){
   var byStore={};
-  list.forEach(function(v){
-    var key=voucherStore(v);
-    if(!byStore[key]) byStore[key]=[];
-    byStore[key].push(v);
-  });
-  var names=Object.keys(byStore).sort(function(a,b){
-    if(a==='Other') return 1;
-    if(b==='Other') return -1;
-    return a.localeCompare(b);
-  });
-  return names.map(function(name){ return {name:name, vouchers:byStore[name]}; });
+  list.forEach(function(v){ var k=voucherStore(v); if(!byStore[k]) byStore[k]=[]; byStore[k].push(v); });
+  return Object.keys(byStore).sort(function(a,b){ if(a==='Other') return 1; if(b==='Other') return -1; return a.localeCompare(b); })
+    .map(function(name){ return {name:name,vouchers:byStore[name]}; });
 }
 
-function renderGroupedList(list, cardFn){
+function renderGroupedList(list,cardFn){
   return groupByStore(list).map(function(g){
     var sorted=g.vouchers.slice().sort(function(a,b){
-      var ca=computeVoucher(a), cb=computeVoucher(b);
-      var r=statusRank(ca.status)-statusRank(cb.status);
-      if(r!==0) return r;
-      return (b.updatedAt||0)-(a.updatedAt||0);
+      var r=statusRank(computeVoucher(a).status)-statusRank(computeVoucher(b).status);
+      return r!==0?r:(b.updatedAt||0)-(a.updatedAt||0);
     });
-    var groupRemaining=0, groupActive=0;
-    sorted.forEach(function(v){ var c=computeVoucher(v); if(c.status!=='EXPIRED'){ groupRemaining+=c.balance; groupActive++; } });
-    return '<div class="store-group">'+
-      '<div class="store-group-header"><h3>'+escapeHtml(g.name)+'</h3><span class="sub tabular">'+groupActive+' active · '+fmtMoney(groupRemaining)+'</span></div>'+
-      '<div class="list">'+sorted.map(cardFn).join('')+'</div>'+
-    '</div>';
+    var rem=0,act=0;
+    sorted.forEach(function(v){ var c=computeVoucher(v); if(c.status!=='EXPIRED'){ rem+=c.balance; act++; } });
+    return '<div class="store-group"><div class="store-group-header"><h3>'+escapeHtml(g.name)+'</h3><span class="sub tabular">'+act+' active \u00b7 '+fmtMoney(rem)+'</span></div><div class="list">'+sorted.map(cardFn).join('')+'</div></div>';
   }).join('');
 }
 
 function countExpired(){ return state.vouchers.filter(function(v){ return computeVoucher(v).status==='EXPIRED'; }).length; }
 
 function renderUseDashboard(){
-  var totalRemaining=0, activeCount=0;
-  state.vouchers.forEach(function(v){ var c=computeVoucher(v); if(c.status!=='EXPIRED'){ totalRemaining+=c.balance; activeCount++; } });
-  var expiredCount=countExpired();
-  var admin=isAdmin();
-
+  var rem=0,act=0;
+  state.vouchers.forEach(function(v){ var c=computeVoucher(v); if(c.status!=='EXPIRED'){ rem+=c.balance; act++; } });
+  var exp=countExpired(), admin=isAdmin();
   var body;
   if(state.vouchers.length===0){
-    body = '<div class="empty"><h2>No vouchers yet</h2><p>Switch to Add mode to record your first voucher — Coles, Myer, or anywhere else.</p>'+
-      '<button class="btn btn-primary" data-action="set-mode" data-mode="add">Go to Add mode</button></div>';
+    body='<div class="empty"><h2>No vouchers yet</h2><p>Switch to Add mode to record your first voucher \u2014 Coles, Myer, or anywhere else.</p><button class="btn btn-primary" data-action="set-mode" data-mode="add">Go to Add mode</button></div>';
   } else {
-    body = '<div class="summary">'+activeCount+' active · <b>'+fmtMoney(totalRemaining)+'</b> remaining'+
-      (expiredCount>0 && admin ? ' · <button class="link-btn" data-action="clear-expired">clear '+expiredCount+' expired</button>' : '')+
-      (expiredCount>0 && !admin ? ' · '+expiredCount+' expired' : '')+
-      '</div>'+
-      renderGroupedList(state.vouchers, renderVoucherCard);
+    body='<div class="summary">'+act+' active \u00b7 <b>'+fmtMoney(rem)+'</b> remaining'+(exp>0&&admin?' \u00b7 <button class="link-btn" data-action="clear-expired">clear '+exp+' expired</button>':'')+(exp>0&&!admin?' \u00b7 '+exp+' expired':'')+'</div>'+renderGroupedList(state.vouchers,renderVoucherCard);
   }
-  return renderTopbar('LG-Voucher-Tracker', false) + renderModeSwitch() + body;
+  return renderTopbar('LG-Voucher-Tracker',false)+renderModeSwitch()+body;
 }
 
 function renderAddHome(){
-  var expiredCount=countExpired();
-  var admin=isAdmin();
-  var body = '<button class="btn btn-primary btn-block" data-action="go-add-form" style="margin-bottom:14px;">+ Add a new voucher</button>'+
-    (expiredCount>0 && admin ? '<button class="btn btn-danger btn-block" data-action="clear-expired" style="margin-bottom:22px;">Clear '+expiredCount+' expired voucher'+(expiredCount>1?'s':'')+'</button>' : '<div style="margin-bottom:22px;"></div>');
-
-  if(state.vouchers.length>0){
-    body += '<h3 style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-ink-soft);margin-bottom:4px;">All vouchers</h3>'+
-      renderGroupedList(state.vouchers, renderManageCard);
-  }
-  return renderTopbar('Add vouchers', false) + renderModeSwitch() + '<div class="screen" style="padding-top:0;">'+body+'</div>';
+  var exp=countExpired(), admin=isAdmin();
+  var body='<button class="btn btn-primary btn-block" data-action="go-add-form" style="margin-bottom:14px;">+ Add a new voucher</button>'+
+    (exp>0&&admin?'<button class="btn btn-danger btn-block" data-action="clear-expired" style="margin-bottom:22px;">Clear '+exp+' expired voucher'+(exp>1?'s':'')+'</button>':'<div style="margin-bottom:22px;"></div>');
+  if(state.vouchers.length>0) body+='<h3 style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-ink-soft);margin-bottom:4px;">All vouchers</h3>'+renderGroupedList(state.vouchers,renderManageCard);
+  return renderTopbar('Add vouchers',false)+renderModeSwitch()+'<div class="screen" style="padding-top:0;">'+body+'</div>';
 }
 
 function renderVoucherCard(v){
-  var c=computeVoucher(v);
-  var expiredCls = c.status==='EXPIRED' ? ' is-expired' : '';
-  return '<button class="voucher-card'+expiredCls+'" data-action="open-voucher" data-id="'+v.id+'">'+
-    '<div class="vc-top">'+
-      '<div><div class="vc-store">'+escapeHtml(voucherStore(v))+'</div><div class="vc-label">'+escapeHtml(voucherTitle(v))+'</div><div class="vc-sub">Purchased '+fmtDate(v.purchaseDate)+'</div></div>'+
-      '<span class="stamp '+statusClass(c.status)+'">'+c.status+'</span>'+
-    '</div>'+
+  var c=computeVoucher(v), exp=c.status==='EXPIRED'?' is-expired':'';
+  return '<button class="voucher-card'+exp+'" data-action="open-voucher" data-id="'+v.id+'">'+
+    '<div class="vc-top"><div><div class="vc-store">'+escapeHtml(voucherStore(v))+'</div><div class="vc-label">'+escapeHtml(voucherTitle(v))+'</div><div class="vc-sub">Purchased '+fmtDate(v.purchaseDate)+'</div></div><span class="stamp '+statusClass(c.status)+'">'+c.status+'</span></div>'+
     '<div class="vc-divider"></div>'+
-    '<div class="vc-bottom">'+
-      '<div><div class="vc-balance-label">Remaining</div><div class="vc-balance tabular">'+fmtMoney(c.balance)+'</div></div>'+
-      '<div class="vc-initial tabular">of '+fmtMoney(v.initialValue)+'</div>'+
-    '</div>'+
+    '<div class="vc-bottom"><div><div class="vc-balance-label">Remaining</div><div class="vc-balance tabular">'+fmtMoney(c.balance)+'</div></div><div class="vc-initial tabular">of '+fmtMoney(v.initialValue)+'</div></div>'+
   '</button>';
 }
 
 function renderManageCard(v){
-  var c=computeVoucher(v);
-  var expiredCls = c.status==='EXPIRED' ? ' is-expired' : '';
-  var admin=isAdmin();
-  return '<div class="voucher-card'+expiredCls+'">'+
-    '<div class="vc-top">'+
-      '<div><div class="vc-store">'+escapeHtml(voucherStore(v))+'</div><div class="vc-label">'+escapeHtml(voucherTitle(v))+'</div><div class="vc-sub">Purchased '+fmtDate(v.purchaseDate)+'</div></div>'+
-      '<span class="stamp '+statusClass(c.status)+'">'+c.status+'</span>'+
-    '</div>'+
+  var c=computeVoucher(v), exp=c.status==='EXPIRED'?' is-expired':'', admin=isAdmin();
+  return '<div class="voucher-card'+exp+'">'+
+    '<div class="vc-top"><div><div class="vc-store">'+escapeHtml(voucherStore(v))+'</div><div class="vc-label">'+escapeHtml(voucherTitle(v))+'</div><div class="vc-sub">Purchased '+fmtDate(v.purchaseDate)+'</div></div><span class="stamp '+statusClass(c.status)+'">'+c.status+'</span></div>'+
     '<div class="vc-divider"></div>'+
-    '<div class="vc-bottom">'+
-      '<div><div class="vc-balance-label">Remaining</div><div class="vc-balance tabular">'+fmtMoney(c.balance)+'</div></div>'+
-      '<div class="vc-initial tabular">of '+fmtMoney(v.initialValue)+'</div>'+
-    '</div>'+
-    '<div class="manage-actions">'+
-      '<button class="btn btn-secondary" data-action="edit-voucher" data-id="'+v.id+'">Edit</button>'+
-      (admin ? '<button class="btn btn-danger" data-action="delete-voucher" data-id="'+v.id+'">Delete</button>' : '')+
-    '</div>'+
+    '<div class="vc-bottom"><div><div class="vc-balance-label">Remaining</div><div class="vc-balance tabular">'+fmtMoney(c.balance)+'</div></div><div class="vc-initial tabular">of '+fmtMoney(v.initialValue)+'</div></div>'+
+    '<div class="manage-actions"><button class="btn btn-secondary" data-action="edit-voucher" data-id="'+v.id+'">Edit</button>'+(admin?'<button class="btn btn-danger" data-action="delete-voucher" data-id="'+v.id+'">Delete</button>':'')+'</div>'+
   '</div>';
 }
 
 function renderUseDetail(){
   var v=getVoucher(state.activeVoucherId);
-  if(!v){ goHome(); return state.mode==='add' ? renderAddHome() : renderUseDashboard(); }
-  var c=computeVoucher(v);
-  var pinShown = !!state.pinRevealed[v.id];
-  var admin=isAdmin();
-
-  var ledgerHtml = c.ledger.length===0
-    ? '<div class="ledger-empty">No transactions recorded yet.</div>'
-    : c.ledger.map(function(t){
-        return '<div class="ledger-row">'+
-          '<div class="date">'+fmtDate(t.date)+'</div>'+
-          '<div class="spent tabular">− '+fmtMoney(t.amount)+'</div>'+
-          '<div class="after tabular">'+fmtMoney(t.balanceAfter)+'</div>'+
-          (admin ? '<button class="del" data-action="delete-txn" data-id="'+v.id+'" data-txn="'+t.id+'" aria-label="Delete">×</button>' : '')+
-        '</div>';
-      }).join('');
-
-  return renderTopbar('', true) +
+  if(!v){ goHome(); return state.mode==='add'?renderAddHome():renderUseDashboard(); }
+  var c=computeVoucher(v), pinShown=!!state.pinRevealed[v.id], admin=isAdmin();
+  var ledgerHtml=c.ledger.length===0?'<div class="ledger-empty">No transactions recorded yet.</div>':c.ledger.map(function(t){
+    return '<div class="ledger-row"><div class="date">'+fmtDate(t.date)+'</div><div class="spent tabular">\u2212 '+fmtMoney(t.amount)+'</div><div class="after tabular">'+fmtMoney(t.balanceAfter)+'</div>'+(admin?'<button class="del" data-action="delete-txn" data-id="'+v.id+'" data-txn="'+t.id+'" aria-label="Delete">\u00d7</button>':'')+'</div>';
+  }).join('');
+  return renderTopbar('',true)+
   '<div class="back-row"><div><div class="vc-store">'+escapeHtml(voucherStore(v))+'</div><h2>'+escapeHtml(voucherTitle(v))+'</h2></div></div>'+
   '<div class="screen">'+
-    '<button class="barcode-frame" data-action="checkout" data-id="'+v.id+'" style="width:100%;border:1px solid var(--color-border);">'+
-      (v.barcodeImage ? '<img src="'+v.barcodeImage+'" alt="Voucher barcode">' : '<div style="padding:30px 0;color:var(--color-ink-soft);font-size:13px;">No barcode photo saved</div>')+
-      '<div class="tap-hint">Tap to open full-screen for scanning</div>'+
-    '</button>'+
-    '<div class="detail-balance"><div class="label">Remaining balance</div><div class="amount tabular">'+fmtMoney(c.balance)+'</div>'+
-      '<span class="stamp '+statusClass(c.status)+'" style="margin-top:8px;">'+c.status+'</span>'+
-    '</div>'+
-    '<div class="card">'+
-      '<div class="detail-row"><span class="k">PIN</span><span class="v">'+
-        (pinShown ? escapeHtml(v.pin) : '••••')+
-        ' <button class="del" style="color:var(--color-primary);font-size:12px;" data-action="toggle-pin" data-id="'+v.id+'">'+(pinShown?'Hide':'Show')+'</button>'+
-      '</span></div>'+
-      '<div class="detail-row"><span class="k">Original value</span><span class="v tabular">'+fmtMoney(v.initialValue)+'</span></div>'+
-      '<div class="detail-row"><span class="k">Purchased</span><span class="v">'+fmtDate(v.purchaseDate)+'</span></div>'+
-    '</div>'+
+    '<button class="barcode-frame" data-action="checkout" data-id="'+v.id+'" style="width:100%;border:1px solid var(--color-border);">'+(v.barcodeImage?'<img src="'+v.barcodeImage+'" alt="Voucher barcode">':'<div style="padding:30px 0;color:var(--color-ink-soft);font-size:13px;">No barcode photo saved</div>')+'<div class="tap-hint">Tap to open full-screen for scanning</div></button>'+
+    '<div class="detail-balance"><div class="label">Remaining balance</div><div class="amount tabular">'+fmtMoney(c.balance)+'</div><span class="stamp '+statusClass(c.status)+'" style="margin-top:8px;">'+c.status+'</span></div>'+
+    '<div class="card"><div class="detail-row"><span class="k">PIN</span><span class="v">'+(pinShown?escapeHtml(v.pin):'\u2022\u2022\u2022\u2022')+' <button class="del" style="color:var(--color-primary);font-size:12px;" data-action="toggle-pin" data-id="'+v.id+'">'+(pinShown?'Hide':'Show')+'</button></span></div><div class="detail-row"><span class="k">Original value</span><span class="v tabular">'+fmtMoney(v.initialValue)+'</span></div><div class="detail-row"><span class="k">Purchased</span><span class="v">'+fmtDate(v.purchaseDate)+'</span></div></div>'+
     (c.status==='EXPIRED'
-      ? '<div class="add-txn"><h3>This voucher is fully used</h3><p style="font-size:13px;color:var(--color-ink-soft);margin-bottom:14px;">No balance left to spend.'+
-          (admin ? ' You can remove it now.' : ' To delete, open this page in admin mode from a PC browser.')+
-        '</p>'+
-          (admin ? '<button class="btn btn-danger btn-block" data-action="delete-voucher" data-id="'+v.id+'">Delete this voucher</button>' : '')+
-        '</div>'
-      : '<div class="add-txn"><h3>Record a transaction</h3>'+
-          '<form data-form="add-txn" data-id="'+v.id+'">'+
-            '<div class="field-row">'+
-              '<div class="field"><label>Date</label><input type="date" name="date" value="'+todayISO()+'" required></div>'+
-              '<div class="field"><label>Amount spent</label><input type="number" name="amount" inputmode="decimal" step="0.01" min="0.01" placeholder="0.00" required></div>'+
-            '</div>'+
-            '<button class="btn btn-primary btn-block" type="submit">Add transaction</button>'+
-          '</form>'+
-        '</div>')+
+      ?'<div class="add-txn"><h3>This voucher is fully used</h3><p style="font-size:13px;color:var(--color-ink-soft);margin-bottom:14px;">No balance left.'+(admin?' You can remove it now.':' Open with #admin in the URL to delete.')+'</p>'+(admin?'<button class="btn btn-danger btn-block" data-action="delete-voucher" data-id="'+v.id+'">Delete this voucher</button>':'')+'</div>'
+      :'<div class="add-txn"><h3>Record a transaction</h3><form data-form="add-txn" data-id="'+v.id+'"><div class="field-row"><div class="field"><label>Date</label><input type="date" name="date" value="'+todayISO()+'" required></div><div class="field"><label>Amount spent</label><input type="number" name="amount" inputmode="decimal" step="0.01" min="0.01" placeholder="0.00" required></div></div><button class="btn btn-primary btn-block" type="submit">Add transaction</button></form></div>')+
     '<div class="ledger"><h3>Transaction history</h3>'+ledgerHtml+'</div>'+
   '</div>';
 }
 
 function renderCheckoutOverlay(v){
-  var c=computeVoucher(v);
-  var pinShown = !!state.pinRevealed['checkout_'+v.id];
-  return '<div class="overlay" data-overlay="checkout">'+
-    '<button class="overlay-close" data-action="close-checkout" aria-label="Close">'+iconClose()+'</button>'+
-    '<div class="overlay-body">'+
-      (v.barcodeImage ? '<img src="'+v.barcodeImage+'" alt="Voucher barcode">' : '<div style="color:var(--color-ink-soft);">No barcode photo saved</div>')+
-      '<div class="overlay-label">'+escapeHtml(voucherStore(v))+' · '+escapeHtml(voucherTitle(v))+'</div>'+
-      '<div class="overlay-balance tabular">'+fmtMoney(c.balance)+' left</div>'+
-      '<div class="overlay-pin"><span>'+(pinShown?escapeHtml(v.pin):'••••')+'</span>'+
-        '<button data-action="toggle-pin-checkout" data-id="'+v.id+'">'+(pinShown?'Hide PIN':'Show PIN')+'</button>'+
-      '</div>'+
-    '</div>'+
-  '</div>';
+  var c=computeVoucher(v), pinShown=!!state.pinRevealed['checkout_'+v.id];
+  return '<div class="overlay"><button class="overlay-close" data-action="close-checkout">'+iconClose()+'</button><div class="overlay-body">'+(v.barcodeImage?'<img src="'+v.barcodeImage+'" alt="Barcode">':'<div style="color:var(--color-ink-soft);">No barcode photo saved</div>')+'<div class="overlay-label">'+escapeHtml(voucherStore(v))+' \u00b7 '+escapeHtml(voucherTitle(v))+'</div><div class="overlay-balance tabular">'+fmtMoney(c.balance)+' left</div><div class="overlay-pin"><span>'+(pinShown?escapeHtml(v.pin):'\u2022\u2022\u2022\u2022')+'</span><button data-action="toggle-pin-checkout" data-id="'+v.id+'">'+(pinShown?'Hide PIN':'Show PIN')+'</button></div></div></div>';
 }
 
 function renderVoucherForm(v){
-  var isEdit=!!v;
-  var title=isEdit?'Edit voucher':'Add a voucher';
-  var photo = state.photoDraft!==null ? state.photoDraft : (v?v.barcodeImage:null);
+  var isEdit=!!v, title=isEdit?'Edit voucher':'Add a voucher';
+  var photo=state.photoDraft!==null?state.photoDraft:(v?v.barcodeImage:null);
   var admin=isAdmin();
-  return renderTopbar('', true)+
+  return renderTopbar('',true)+
   '<div class="back-row"><h2>'+title+'</h2></div>'+
-  '<div class="screen">'+
-    '<form data-form="voucher" data-id="'+(isEdit?v.id:'')+'">'+
-      '<div class="field"><label>Store</label><input type="text" name="store" list="storeSuggestions" placeholder="e.g. Coles" value="'+escapeAttr(v?v.store:'')+'" style="font-family:var(--font-body);" required>'+
-        '<datalist id="storeSuggestions">'+
-          '<option value="Coles"></option><option value="Myer"></option><option value="Woolworths"></option>'+
-          '<option value="Kmart"></option><option value="Target"></option><option value="Big W"></option>'+
-          '<option value="JB Hi-Fi"></option><option value="David Jones"></option><option value="Bunnings"></option>'+
-          '<option value="Officeworks"></option><option value="Other"></option>'+
-        '</datalist>'+
-      '</div>'+
-      '<div class="field"><label>Label (optional)</label><input type="text" name="label" placeholder="e.g. Birthday gift" value="'+escapeAttr(v?v.label:'')+'" style="font-family:var(--font-body);"></div>'+
-      '<div class="field-row">'+
-        '<div class="field"><label>Voucher value</label><input type="number" name="initialValue" inputmode="decimal" step="0.01" min="0.01" placeholder="100.00" value="'+(v?v.initialValue:'')+'" required></div>'+
-        '<div class="field"><label>Purchase date</label><input type="date" name="purchaseDate" value="'+(v?v.purchaseDate:todayISO())+'" required></div>'+
-      '</div>'+
-      '<div class="field"><label>PIN</label><div class="pin-wrap"><input type="text" name="pin" id="pinInput" inputmode="numeric" placeholder="1234" value="'+escapeAttr(v?v.pin:'')+'" style="padding-right:60px;" required>'+
-        '<button type="button" class="pin-toggle" data-action="toggle-pin-input">Show</button></div>'+
-      '</div>'+
-      '<div class="field"><label>Barcode photo</label>'+
-        '<div class="photo-input">'+
-          (photo ? '<img src="'+photo+'" alt="Barcode preview">' : '')+
-          '<input type="file" accept="image/*" id="photoFile" style="display:none;">'+
-          '<button type="button" class="btn btn-secondary pick-btn" data-action="pick-photo">'+(photo?'Change photo':'Choose photo')+'</button>'+
-          '<div class="hint">Take a clear, well-lit photo of the barcode. It\'ll be shown full-screen for scanning at checkout.</div>'+
-        '</div>'+
-      '</div>'+
-      '<div class="form-actions">'+
-        '<button class="btn btn-primary btn-block" type="submit">'+(isEdit?'Save changes':'Save voucher')+'</button>'+
-      '</div>'+
-      (isEdit && admin ? '<div class="form-actions"><button class="btn btn-danger btn-block" type="button" data-action="delete-voucher" data-id="'+v.id+'">Delete this voucher</button></div>' : '')+
-    '</form>'+
-  '</div>';
+  '<div class="screen"><form data-form="voucher" data-id="'+(isEdit?v.id:'')+'">'+
+    '<div class="field"><label>Store</label><input type="text" name="store" list="storeSuggestions" placeholder="e.g. Coles" value="'+escapeAttr(v?v.store:'')+'" style="font-family:var(--font-body);" required><datalist id="storeSuggestions"><option value="Coles"></option><option value="Myer"></option><option value="Woolworths"></option><option value="Kmart"></option><option value="Target"></option><option value="Big W"></option><option value="JB Hi-Fi"></option><option value="David Jones"></option><option value="Bunnings"></option><option value="Officeworks"></option><option value="Other"></option></datalist></div>'+
+    '<div class="field"><label>Label (optional)</label><input type="text" name="label" placeholder="e.g. Birthday gift" value="'+escapeAttr(v?v.label:'')+'" style="font-family:var(--font-body);"></div>'+
+    '<div class="field-row"><div class="field"><label>Voucher value</label><input type="number" name="initialValue" inputmode="decimal" step="0.01" min="0.01" placeholder="100.00" value="'+(v?v.initialValue:'')+'" required></div><div class="field"><label>Purchase date</label><input type="date" name="purchaseDate" value="'+(v?v.purchaseDate:todayISO())+'" required></div></div>'+
+    '<div class="field"><label>PIN</label><div class="pin-wrap"><input type="text" name="pin" id="pinInput" inputmode="numeric" placeholder="1234" value="'+escapeAttr(v?v.pin:'')+'" style="padding-right:60px;" required><button type="button" class="pin-toggle" data-action="toggle-pin-input">Show</button></div></div>'+
+    '<div class="field"><label>Barcode photo</label><div class="photo-input">'+(photo?'<img src="'+photo+'" alt="Barcode preview">':'')+'<input type="file" accept="image/*" id="photoFile" style="display:none;"><button type="button" class="btn btn-secondary pick-btn" data-action="pick-photo">'+(photo?'Change photo':'Choose photo')+'</button><div class="hint">Take a clear photo of the barcode for full-screen scanning at checkout.</div></div></div>'+
+    '<div class="form-actions"><button class="btn btn-primary btn-block" type="submit">'+(isEdit?'Save changes':'Save voucher')+'</button></div>'+
+    (isEdit&&admin?'<div class="form-actions"><button class="btn btn-danger btn-block" type="button" data-action="delete-voucher" data-id="'+v.id+'">Delete this voucher</button></div>':'')+
+  '</form></div>';
 }
 
 function renderSummaryDashboard(){
-  var period = state.summaryPeriod || 'week';
-  var allTxns = allTransactionsFlat();
-  var body;
-
-  if(state.vouchers.length===0 || allTxns.length===0){
-    body = '<div class="screen" style="padding-top:0;">'+
-      '<div class="empty"><h2>Nothing to summarise yet</h2><p>Once you record a transaction against a voucher, weekly and monthly spending will show up here.</p></div>'+
-    '</div>';
-    return renderTopbar('Summary', false) + renderModeSwitch() + body;
+  var period=state.summaryPeriod||'week', allTxns=allTransactionsFlat();
+  if(state.vouchers.length===0||allTxns.length===0){
+    return renderTopbar('Summary',false)+renderModeSwitch()+'<div class="screen" style="padding-top:0;"><div class="empty"><h2>Nothing to summarise yet</h2><p>Once you record a transaction, spending stats will appear here.</p></div></div>';
   }
-
-  var buckets = period==='week' ? buildWeekBuckets(8) : buildMonthBuckets(6);
-  fillBuckets(buckets, allTxns);
-  var max = Math.max.apply(null, buckets.map(function(b){ return b.total; }).concat([0.01]));
-  var periodTotal = round2(buckets.reduce(function(s,b){ return s+b.total; },0));
-  var allTimeTotal = round2(allTxns.reduce(function(s,t){ return s+t.amount; },0));
-
-  var chartHtml = buckets.map(function(b,i){
-    var h = Math.max(3, Math.round((b.total/max)*100));
-    var isPeak = b.total===max && max>0;
-    var revealed = state.summaryRevealIndex===i;
-    var chip = revealed ? '<div class="bar-value-chip">'+fmtMoney(b.total)+'<br><span style="font-weight:400;opacity:.85;">'+escapeHtml(b.full)+'</span></div>' : '';
-    return '<button class="bar-col" data-action="toggle-bar-value" data-idx="'+i+'">'+
-      '<div class="bar-track">'+chip+'<div class="bar-fill'+(isPeak?' is-peak':'')+'" style="height:'+h+'%"></div></div>'+
-      '<div class="bar-label">'+escapeHtml(b.label)+'</div>'+
-    '</button>';
+  var buckets=period==='week'?buildWeekBuckets(8):buildMonthBuckets(6);
+  fillBuckets(buckets,allTxns);
+  var max=Math.max.apply(null,buckets.map(function(b){ return b.total; }).concat([0.01]));
+  var periodTotal=round2(buckets.reduce(function(s,b){ return s+b.total; },0));
+  var allTimeTotal=round2(allTxns.reduce(function(s,t){ return s+t.amount; },0));
+  var chartHtml=buckets.map(function(b,i){
+    var h=Math.max(3,Math.round((b.total/max)*100)), isPeak=b.total===max&&max>0, rev=state.summaryRevealIndex===i;
+    return '<button class="bar-col" data-action="toggle-bar-value" data-idx="'+i+'"><div class="bar-track">'+(rev?'<div class="bar-value-chip">'+fmtMoney(b.total)+'<br><span style="font-weight:400;opacity:.85;">'+escapeHtml(b.full)+'</span></div>':'')+'<div class="bar-fill'+(isPeak?' is-peak':'')+'" style="height:'+h+'%"></div></div><div class="bar-label">'+escapeHtml(b.label)+'</div></button>';
   }).join('');
-
-  var rangeStart = buckets[0].start, rangeEnd = buckets[buckets.length-1].end;
-  var stores = storeBreakdownInRange(allTxns, rangeStart, rangeEnd);
-  var storeMax = stores.length ? stores[0].total : 1;
-  var storesHtml = stores.length===0
-    ? '<div class="ledger-empty">No spending in this period yet.</div>'
-    : stores.map(function(s){
-        var w = Math.round((s.total/storeMax)*100);
-        return '<div class="store-bar-row">'+
-          '<div class="store-bar-top"><span class="name">'+escapeHtml(s.store)+'</span><span class="amt tabular">'+fmtMoney(s.total)+'</span></div>'+
-          '<div class="store-bar-track"><div class="store-bar-fill" style="width:'+w+'%"></div></div>'+
-        '</div>';
-      }).join('');
-
-  body = '<div class="screen" style="padding-top:0;">'+
-    '<div class="stat-row">'+
-      '<div class="stat-tile"><div class="label">This period</div><div class="value tabular">'+fmtMoney(periodTotal)+'</div><div class="sub">'+(period==='week'?'last 8 weeks':'last 6 months')+'</div></div>'+
-      '<div class="stat-tile"><div class="label">All-time spent</div><div class="value tabular">'+fmtMoney(allTimeTotal)+'</div><div class="sub">across '+state.vouchers.length+' voucher'+(state.vouchers.length===1?'':'s')+'</div></div>'+
-    '</div>'+
-    '<div class="card">'+
-      '<div class="card-header"><h3>Spending over time</h3>'+
-        '<div class="period-toggle">'+
-          '<button class="period-btn'+(period==='week'?' active':'')+'" data-action="set-period" data-period="week">Weekly</button>'+
-          '<button class="period-btn'+(period==='month'?' active':'')+'" data-action="set-period" data-period="month">Monthly</button>'+
-        '</div>'+
-      '</div>'+
-      '<div class="chart-row">'+chartHtml+'</div>'+
-      '<div class="hint-note">Tap a bar to see the exact amount and date range.</div>'+
-    '</div>'+
-    '<div class="card">'+
-      '<div class="card-header"><h3>By store — this period</h3></div>'+
-      storesHtml+
-    '</div>'+
+  var rs=buckets[0].start, re=buckets[buckets.length-1].end;
+  var stores=storeBreakdownInRange(allTxns,rs,re);
+  var sm=stores.length?stores[0].total:1;
+  var storesHtml=stores.length===0?'<div class="ledger-empty">No spending in this period yet.</div>':stores.map(function(s){
+    return '<div class="store-bar-row"><div class="store-bar-top"><span class="name">'+escapeHtml(s.store)+'</span><span class="amt tabular">'+fmtMoney(s.total)+'</span></div><div class="store-bar-track"><div class="store-bar-fill" style="width:'+Math.round((s.total/sm)*100)+'%"></div></div></div>';
+  }).join('');
+  return renderTopbar('Summary',false)+renderModeSwitch()+'<div class="screen" style="padding-top:0;">'+
+    '<div class="stat-row"><div class="stat-tile"><div class="label">This period</div><div class="value tabular">'+fmtMoney(periodTotal)+'</div><div class="sub">'+(period==='week'?'last 8 weeks':'last 6 months')+'</div></div><div class="stat-tile"><div class="label">All-time spent</div><div class="value tabular">'+fmtMoney(allTimeTotal)+'</div><div class="sub">across '+state.vouchers.length+' voucher'+(state.vouchers.length===1?'':'s')+'</div></div></div>'+
+    '<div class="card"><div class="card-header"><h3>Spending over time</h3><div class="period-toggle"><button class="period-btn'+(period==='week'?' active':'')+'" data-action="set-period" data-period="week">Weekly</button><button class="period-btn'+(period==='month'?' active':'')+'" data-action="set-period" data-period="month">Monthly</button></div></div><div class="chart-row">'+chartHtml+'</div><div class="hint-note">Tap a bar to see the exact amount and date range.</div></div>'+
+    '<div class="card"><div class="card-header"><h3>By store \u2014 this period</h3></div>'+storesHtml+'</div>'+
   '</div>';
-
-  return renderTopbar('Summary', false) + renderModeSwitch() + body;
 }
 
 function renderSettings(){
   var cfg=state.config||{apiKey:'',authDomain:'',databaseURL:'',projectId:'',roomCode:''};
-  var connected=!!state.config;
-  var admin=isAdmin();
-  return renderTopbar('', connected)+
+  var connected=!!state.config, admin=isAdmin();
+  return renderTopbar('',connected)+
   '<div class="back-row" style="'+(connected?'':'padding-top:calc(18px + var(--safe-top));')+'"><h2>'+(connected?'Settings':'Connect to Firebase')+'</h2></div>'+
   '<div class="screen">'+
-    (connected ? '' :
-      '<p class="lead">This app uses Firebase to sync vouchers between phones in real time — no manual refresh needed. One-time setup takes about 5 minutes.</p>'+
+    (connected?'':
+      '<p class="lead">This app uses Firebase Realtime Database to sync vouchers instantly between phones. Setup takes about 5 minutes.</p>'+
       '<ul class="steps">'+
-        '<li><b>1.</b> Go to <b>console.firebase.google.com</b> and create a new project (disable Analytics when asked).</li>'+
-        '<li><b>2.</b> Click the web icon <b>&lt;/&gt;</b> to add a web app. Copy the 4 config values shown below.</li>'+
-        '<li><b>3.</b> In the left sidebar, open <b>Build → Realtime Database</b> → Create Database → choose a location → Start in <b>test mode</b>.</li>'+
-        '<li><b>4.</b> Then click the <b>Rules</b> tab and paste these rules so they don\'t expire after 30 days:</li>'+
+        '<li><b>1.</b> Go to <b>console.firebase.google.com</b> \u2192 Create a new project (disable Analytics).</li>'+
+        '<li><b>2.</b> Click the <b>&lt;/&gt;</b> web icon \u2192 register an app \u2192 copy the 4 config values below.</li>'+
+        '<li><b>3.</b> Left sidebar \u2192 <b>Build \u2192 Realtime Database</b> \u2192 Create Database \u2192 test mode \u2192 then paste these rules in the Rules tab:</li>'+
       '</ul>'+
       '<div style="background:var(--color-ink);color:#c6e0d0;padding:12px 14px;border-radius:10px;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;margin-bottom:20px;overflow-x:auto;white-space:pre;">{\n  "rules": {\n    "rooms": {\n      "$roomId": {\n        ".read": "auth != null",\n        ".write": "auth != null"\n      }\n    }\n  }\n}</div>'+
       '<ul class="steps">'+
-        '<li><b>5.</b> Open <b>Build → Authentication</b> → Get started → Sign-in method → enable <b>Anonymous</b>.</li>'+
-        '<li><b>6.</b> Pick a room code (any word) and use the same one on both phones.</li>'+
+        '<li><b>4.</b> Left sidebar \u2192 <b>Build \u2192 Authentication</b> \u2192 Get started \u2192 enable <b>Anonymous</b>.</li>'+
+        '<li><b>5.</b> Pick a room code (any word) and enter the same one on both phones.</li>'+
       '</ul>')+
     '<form data-form="settings">'+
-      '<div class="field"><label>API key</label><input type="text" name="apiKey" value="'+escapeAttr(cfg.apiKey)+'" placeholder="AIza…" style="font-family:var(--font-body);" required></div>'+
+      '<div class="field"><label>API key</label><input type="text" name="apiKey" value="'+escapeAttr(cfg.apiKey)+'" placeholder="AIza\u2026" style="font-family:var(--font-body);" required></div>'+
       '<div class="field"><label>Auth domain</label><input type="text" name="authDomain" value="'+escapeAttr(cfg.authDomain)+'" placeholder="your-project.firebaseapp.com" style="font-family:var(--font-body);" required></div>'+
       '<div class="field"><label>Database URL</label><input type="text" name="databaseURL" value="'+escapeAttr(cfg.databaseURL)+'" placeholder="https://your-project-default-rtdb.firebaseio.com" style="font-family:var(--font-body);" required></div>'+
       '<div class="field"><label>Project ID</label><input type="text" name="projectId" value="'+escapeAttr(cfg.projectId)+'" placeholder="your-project-id" style="font-family:var(--font-body);" required></div>'+
-      '<div class="field"><label>Room code</label><input type="text" name="roomCode" value="'+escapeAttr(cfg.roomCode)+'" placeholder="e.g. our-vouchers" style="font-family:var(--font-body);" required>'+
-        '<div class="hint">Both phones must use the same room code. It can be any word — it\'s just a namespace for your data.</div>'+
-      '</div>'+
+      '<div class="field"><label>Room code</label><input type="text" name="roomCode" value="'+escapeAttr(cfg.roomCode)+'" placeholder="e.g. our-vouchers" style="font-family:var(--font-body);" required><div class="hint">Both phones must use the same room code.</div></div>'+
       '<div class="form-actions"><button class="btn btn-primary btn-block" type="submit">'+(connected?'Save & reconnect':'Connect')+'</button></div>'+
     '</form>'+
-    (connected ? '<div class="form-actions" style="margin-top:16px;"><button class="btn btn-danger btn-block" data-action="disconnect">Disconnect from Firebase</button></div>' : '')+
-    (!admin ? '<div style="margin-top:28px;padding:16px;border:1px dashed var(--color-border);border-radius:var(--radius);font-size:12.5px;color:var(--color-ink-soft);line-height:1.55;">'+
-      '<b style="color:var(--color-ink);">Need to delete vouchers?</b><br>'+
-      'Open this app with <code style="font-family:var(--font-mono);background:var(--color-bg);padding:2px 6px;border-radius:4px;">#admin</code> at the end of the URL to enable delete actions.'+
-    '</div>' : '')+
+    (connected?'<div class="form-actions" style="margin-top:16px;"><button class="btn btn-danger btn-block" data-action="disconnect">Disconnect from Firebase</button></div>':'')+
+    (!admin?'<div style="margin-top:28px;padding:16px;border:1px dashed var(--color-border);border-radius:var(--radius);font-size:12.5px;color:var(--color-ink-soft);line-height:1.55;"><b style="color:var(--color-ink);">Need to delete vouchers?</b><br>Open this app with <code style="font-family:var(--font-mono);background:var(--color-bg);padding:2px 6px;border-radius:4px;">#admin</code> at the end of the URL.</div>':'')+
   '</div>';
 }
 
-/* ---------------- small helpers ---------------- */
+/* ---------------- helpers ---------------- */
 function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function escapeAttr(s){ return escapeHtml(s); }
-
 function iconSettings(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'; }
 function iconBack(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>'; }
 function iconClose(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>'; }
@@ -934,19 +627,15 @@ function iconClose(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="curre
 /* ---------------- events ---------------- */
 function attachEvents(){
   appEl.querySelectorAll('[data-action]').forEach(function(el){
-    el.addEventListener('click', function(){ handleAction(el.getAttribute('data-action'), el); });
+    el.addEventListener('click',function(){ handleAction(el.getAttribute('data-action'),el); });
   });
-  var vForm=appEl.querySelector('[data-form="voucher"]');
-  if(vForm) vForm.addEventListener('submit', onSubmitVoucherForm);
-  var tForm=appEl.querySelector('[data-form="add-txn"]');
-  if(tForm) tForm.addEventListener('submit', onSubmitTxnForm);
-  var sForm=appEl.querySelector('[data-form="settings"]');
-  if(sForm) sForm.addEventListener('submit', onSubmitSettingsForm);
-  var photoFile=appEl.querySelector('#photoFile');
-  if(photoFile) photoFile.addEventListener('change', onPhotoPicked);
+  var vf=appEl.querySelector('[data-form="voucher"]'); if(vf) vf.addEventListener('submit',onSubmitVoucherForm);
+  var tf=appEl.querySelector('[data-form="add-txn"]'); if(tf) tf.addEventListener('submit',onSubmitTxnForm);
+  var sf=appEl.querySelector('[data-form="settings"]'); if(sf) sf.addEventListener('submit',onSubmitSettingsForm);
+  var pf=appEl.querySelector('#photoFile'); if(pf) pf.addEventListener('change',onPhotoPicked);
 }
 
-function handleAction(action, el){
+function handleAction(action,el){
   var id=el.getAttribute('data-id');
   if(action==='go-home'){ goHome(); state.photoDraft=null; render(); }
   else if(action==='set-mode'){ state.mode=el.getAttribute('data-mode'); goHome(); state.photoDraft=null; render(); }
@@ -956,109 +645,74 @@ function handleAction(action, el){
   else if(action==='edit-voucher'){ state.view='manageEdit'; state.editingVoucherId=id; state.photoDraft=null; render(); }
   else if(action==='toggle-pin'){ state.pinRevealed[id]=!state.pinRevealed[id]; render(); }
   else if(action==='toggle-pin-checkout'){ state.pinRevealed['checkout_'+id]=!state.pinRevealed['checkout_'+id]; render(); }
-  else if(action==='toggle-pin-input'){ var pi=document.getElementById('pinInput'); if(pi){ pi.type = pi.type==='password'?'text':'password'; } }
+  else if(action==='toggle-pin-input'){ var pi=document.getElementById('pinInput'); if(pi) pi.type=pi.type==='password'?'text':'password'; }
   else if(action==='checkout'){ state.checkoutId=id; state.pinRevealed['checkout_'+id]=false; render(); }
   else if(action==='close-checkout'){ state.checkoutId=null; render(); }
-  else if(action==='pick-photo'){ var pf=document.getElementById('photoFile'); if(pf) pf.click(); }
-  else if(action==='delete-txn'){
-    if(!isAdmin()){ showToast('Delete requires admin mode. Add #admin to the URL.','error'); return; }
-    onDeleteTxn(id, el.getAttribute('data-txn'));
-  }
-  else if(action==='delete-voucher'){
-    if(!isAdmin()){ showToast('Delete requires admin mode. Add #admin to the URL.','error'); return; }
-    onDeleteVoucher(id);
-  }
-  else if(action==='clear-expired'){
-    if(!isAdmin()){ showToast('Delete requires admin mode. Add #admin to the URL.','error'); return; }
-    onClearExpired();
-  }
+  else if(action==='pick-photo'){ var ph=document.getElementById('photoFile'); if(ph) ph.click(); }
+  else if(action==='delete-txn'){ if(!isAdmin()){ showToast('Delete requires admin mode.','error'); return; } onDeleteTxn(id,el.getAttribute('data-txn')); }
+  else if(action==='delete-voucher'){ if(!isAdmin()){ showToast('Delete requires admin mode.','error'); return; } onDeleteVoucher(id); }
+  else if(action==='clear-expired'){ if(!isAdmin()){ showToast('Delete requires admin mode.','error'); return; } onClearExpired(); }
   else if(action==='disconnect'){
-    if(confirm('Disconnect from Firebase? Your config will be cleared from this phone.')){
+    if(confirm('Disconnect from Firebase? Config will be cleared from this phone.')){
       if(unsubscribe){ unsubscribe(); unsubscribe=null; }
-      clearConfigLS();
-      state.config=null;
-      state.vouchers=[];
-      state.deletedIds={};
-      state.syncStatus='offline';
-      state.view='settings';
-      render();
+      clearConfigLS(); state.config=null; state.vouchers=[]; state.deletedIds={}; state.syncStatus='offline'; state.view='settings'; render();
     }
   }
   else if(action==='set-period'){ state.summaryPeriod=el.getAttribute('data-period'); state.summaryRevealIndex=null; render(); }
-  else if(action==='toggle-bar-value'){ var idx=Number(el.getAttribute('data-idx')); state.summaryRevealIndex = state.summaryRevealIndex===idx ? null : idx; render(); }
+  else if(action==='toggle-bar-value'){ var idx=Number(el.getAttribute('data-idx')); state.summaryRevealIndex=state.summaryRevealIndex===idx?null:idx; render(); }
 }
 
 function onPhotoPicked(e){
-  var file=e.target.files && e.target.files[0];
-  if(!file) return;
-  compressImage(file, 900, 0.72).then(function(dataUrl){
-    state.photoDraft=dataUrl;
-    render();
-  }).catch(function(err){ showToast(err.message||'Could not process that photo.','error'); });
+  var file=e.target.files&&e.target.files[0]; if(!file) return;
+  compressImage(file,900,0.72).then(function(d){ state.photoDraft=d; render(); }).catch(function(err){ showToast(err.message||'Could not process that photo.','error'); });
 }
 
 function onSubmitVoucherForm(e){
   e.preventDefault();
-  var f=e.target;
-  var id=f.getAttribute('data-id');
-  var isEdit=!!id;
-  var store=f.store.value.trim();
-  var label=f.label.value.trim();
-  var initialValue=round2(parseFloat(f.initialValue.value));
-  var purchaseDate=f.purchaseDate.value;
-  var pin=f.pin.value.trim();
+  var f=e.target, id=f.getAttribute('data-id'), isEdit=!!id;
+  var store=f.store.value.trim(), label=f.label.value.trim();
+  var initialValue=round2(parseFloat(f.initialValue.value)), purchaseDate=f.purchaseDate.value, pin=f.pin.value.trim();
   if(!store){ showToast('Enter which store this voucher is for.','error'); return; }
   if(!(initialValue>0)){ showToast('Enter a voucher value greater than 0.','error'); return; }
   if(!pin){ showToast('Enter the voucher PIN.','error'); return; }
-
-  var photo = state.photoDraft!==null ? state.photoDraft : (isEdit ? (getVoucher(id)||{}).barcodeImage : null);
-
-  console.log('Saving voucher:', store, 'value:', initialValue);
+  var photo=state.photoDraft!==null?state.photoDraft:(isEdit?(getVoucher(id)||{}).barcodeImage:null);
   persist(function(vouchers){
     if(isEdit){
       var v=vouchers.find(function(x){ return x.id===id; });
       if(v){ v.store=store; v.label=label; v.initialValue=initialValue; v.purchaseDate=purchaseDate; v.pin=pin; v.barcodeImage=photo||null; v.updatedAt=Date.now(); }
     } else {
-      vouchers.push({ id:uid(), store:store, label:label, initialValue:initialValue, purchaseDate:purchaseDate, pin:pin, barcodeImage:photo||null, transactions:[], createdAt:Date.now(), updatedAt:Date.now() });
+      vouchers.push({id:uid(),store:store,label:label,initialValue:initialValue,purchaseDate:purchaseDate,pin:pin,barcodeImage:photo||null,transactions:[],createdAt:Date.now(),updatedAt:Date.now()});
     }
     return vouchers;
-  }).then(function(ok){
-    console.log('Persist result:', ok);
-    if(ok){ state.photoDraft=null; goHome(); showToast(isEdit?'Voucher updated.':'Voucher saved.'); render(); }
-  });
+  }).then(function(ok){ if(ok){ state.photoDraft=null; goHome(); showToast(isEdit?'Voucher updated.':'Voucher saved.'); render(); } });
 }
 
 function onSubmitTxnForm(e){
   e.preventDefault();
-  var f=e.target;
-  var id=f.getAttribute('data-id');
-  var date=f.date.value;
+  var f=e.target, id=f.getAttribute('data-id'), date=f.date.value;
   var amount=round2(parseFloat(f.amount.value));
   if(!(amount>0)){ showToast('Enter an amount greater than 0.','error'); return; }
   var v=getVoucher(id);
-  if(v){
-    var c=computeVoucher(v);
-    if(amount>c.balance+0.0001 && !confirm('That\'s more than the remaining balance ('+fmtMoney(c.balance)+'). Add it anyway?')) return;
-  }
+  if(v){ var c=computeVoucher(v); if(amount>c.balance+0.0001&&!confirm('That\'s more than the remaining balance ('+fmtMoney(c.balance)+'). Add it anyway?')) return; }
   persist(function(vouchers){
     var vv=vouchers.find(function(x){ return x.id===id; });
-    if(vv){ vv.transactions.push({id:uid(), date:date, amount:amount, ts:Date.now()}); vv.updatedAt=Date.now(); }
+    if(vv){ vv.transactions=vv.transactions||[]; vv.transactions.push({id:uid(),date:date,amount:amount,ts:Date.now()}); vv.updatedAt=Date.now(); }
     return vouchers;
   }).then(function(ok){ if(ok){ showToast('Transaction added.'); render(); } });
 }
 
-function onDeleteTxn(voucherId, txnId){
+function onDeleteTxn(voucherId,txnId){
   if(!confirm('Delete this transaction?')) return;
   persist(function(vouchers){
     var v=vouchers.find(function(x){ return x.id===voucherId; });
-    if(v){ v.transactions=v.transactions.filter(function(t){ return t.id!==txnId; }); v.updatedAt=Date.now(); }
+    if(v){ v.transactions=(v.transactions||[]).filter(function(t){ return t.id!==txnId; }); v.updatedAt=Date.now(); }
     return vouchers;
   }).then(function(ok){ if(ok) showToast('Transaction deleted.'); });
 }
 
 function onDeleteVoucher(id){
   if(!confirm('Delete this voucher and its whole history? This can\'t be undone.')) return;
-  persist(function(vouchers){ return vouchers.filter(function(v){ return v.id!==id; }); }, {deletedId:id}).then(function(ok){
+  persist(function(vouchers){ return vouchers.filter(function(v){ return v.id!==id; }); },{deletedId:id}).then(function(ok){
     if(ok){ goHome(); showToast('Voucher deleted.'); render(); }
   });
 }
@@ -1066,12 +720,9 @@ function onDeleteVoucher(id){
 function onClearExpired(){
   var expired=state.vouchers.filter(function(v){ return computeVoucher(v).status==='EXPIRED'; });
   if(expired.length===0) return;
-  var n=expired.length;
-  var expiredIds=expired.map(function(v){ return v.id; });
+  var n=expired.length, ids=expired.map(function(v){ return v.id; });
   if(!confirm('Delete '+n+' expired voucher'+(n>1?'s':'')+'? This can\'t be undone.')) return;
-  persist(function(vouchers){
-    return vouchers.filter(function(v){ return computeVoucher(v).status!=='EXPIRED'; });
-  }, {deletedIds:expiredIds}).then(function(ok){
+  persist(function(vouchers){ return vouchers.filter(function(v){ return computeVoucher(v).status!=='EXPIRED'; }); },{deletedIds:ids}).then(function(ok){
     if(ok){ showToast('Cleared '+n+' expired voucher'+(n>1?'s':'')+'.'); render(); }
   });
 }
@@ -1079,46 +730,23 @@ function onClearExpired(){
 function onSubmitSettingsForm(e){
   e.preventDefault();
   var f=e.target;
-  var cfg={
-    apiKey:f.apiKey.value.trim(),
-    authDomain:f.authDomain.value.trim(),
-    databaseURL:f.databaseURL.value.trim(),
-    projectId:f.projectId.value.trim(),
-    roomCode:f.roomCode.value.trim()
-  };
+  var cfg={apiKey:f.apiKey.value.trim(),authDomain:f.authDomain.value.trim(),databaseURL:f.databaseURL.value.trim(),projectId:f.projectId.value.trim(),roomCode:f.roomCode.value.trim()};
   if(!cfg.roomCode){ showToast('Enter a room code.','error'); return; }
   var btn=f.querySelector('button[type=submit]');
-  btn.disabled=true; btn.textContent='Connecting…';
-
+  btn.disabled=true; btn.textContent='Connecting\u2026';
   try{
     initFirebase(cfg);
     saveConfigLS(cfg);
     state.config=cfg;
     startListening(cfg);
-
-    /* Give it a moment to connect */
-    setTimeout(function(){
-      if(state.syncStatus==='live' || state.syncStatus==='synced'){
-        goHome();
-        showToast('Connected — syncing in real time.');
-        render();
-      } else {
-        goHome();
-        showToast('Connected. Waiting for data…');
-        render();
-      }
-    }, 1500);
+    setTimeout(function(){ goHome(); showToast('Connected \u2014 syncing in real time.'); render(); },1500);
   }catch(err){
     showToast(err.message||'Could not connect.','error');
     btn.disabled=false; btn.textContent='Connect';
   }
 }
 
-/* ---------------- init ---------------- */
-document.addEventListener('DOMContentLoaded', function(){
-  appEl=document.getElementById('app');
-  initialLoad();
-});
+document.addEventListener('DOMContentLoaded',function(){ appEl=document.getElementById('app'); initialLoad(); });
 
 })();
 </script>
