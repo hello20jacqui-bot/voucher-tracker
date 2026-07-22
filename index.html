@@ -413,9 +413,13 @@ function startListening(cfg){
   if(unsubscribe){ unsubscribe(); unsubscribe=null; }
   var roomCode=cfg.roomCode.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'');
   dataRef=db.ref('rooms/'+roomCode);
+  console.log('Firebase: Listening at', 'rooms/'+roomCode);
 
   /* Sign in anonymously (required for database rules) */
-  firebase.auth().signInAnonymously().catch(function(err){
+  firebase.auth().signInAnonymously().then(function(res){
+    console.log('Firebase: Authenticated as', res.user.uid);
+  }).catch(function(err){
+    console.error('Firebase auth error:', err.code, err.message);
     showToast('Auth failed: '+err.message,'error');
   });
 
@@ -460,22 +464,34 @@ function stripUndefined(obj){
 function writeToFirebase(vouchers, deletedIds){
   if(!dataRef){
     showToast('Not connected to Firebase.','error');
+    console.error('Firebase: dataRef is null');
+    return Promise.resolve(false);
+  }
+  if(!firebase.auth().currentUser){
+    showToast('Not authenticated. Refresh the page.','error');
+    console.error('Firebase: Not authenticated');
     return Promise.resolve(false);
   }
   state.syncStatus='syncing';
+  render();
   var clean=stripUndefined(vouchers.map(function(v){
     var c=clone(v);
     if(!c.transactions) c.transactions=[];
     return c;
   }));
+  console.log('Firebase: Writing', clean.length, 'vouchers');
   return dataRef.set({
     vouchers: clean,
     deletedIds: deletedIds||state.deletedIds||{},
     lastUpdated: firebase.database.ServerValue.TIMESTAMP
   }).then(function(){
+    console.log('Firebase: Write succeeded');
     state.syncStatus='live';
+    state.lastSynced=Date.now();
+    render();
     return true;
   }).catch(function(err){
+    console.error('Firebase write error:', err.code, err.message);
     state.syncStatus='error';
     showToast('Save failed: '+err.message,'error');
     render();
@@ -997,6 +1013,7 @@ function onSubmitVoucherForm(e){
 
   var photo = state.photoDraft!==null ? state.photoDraft : (isEdit ? (getVoucher(id)||{}).barcodeImage : null);
 
+  console.log('Saving voucher:', store, 'value:', initialValue);
   persist(function(vouchers){
     if(isEdit){
       var v=vouchers.find(function(x){ return x.id===id; });
@@ -1006,6 +1023,7 @@ function onSubmitVoucherForm(e){
     }
     return vouchers;
   }).then(function(ok){
+    console.log('Persist result:', ok);
     if(ok){ state.photoDraft=null; goHome(); showToast(isEdit?'Voucher updated.':'Voucher saved.'); render(); }
   });
 }
