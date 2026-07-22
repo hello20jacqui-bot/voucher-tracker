@@ -279,7 +279,7 @@ function getVoucher(id){ for(var i=0;i<state.vouchers.length;i++){ if(state.vouc
 function voucherTitle(v){ return (v.label && v.label.trim()) ? v.label.trim() : 'Voucher'; }
 function voucherStore(v){ return (v.store && v.store.trim()) ? v.store.trim() : 'Other'; }
 function computeVoucher(v){
-  var txns=v.transactions.slice().sort(function(a,b){ if(a.date===b.date) return (a.ts||0)-(b.ts||0); return a.date<b.date?-1:1; });
+  var txns=(v.transactions||[]).slice().sort(function(a,b){ if(a.date===b.date) return (a.ts||0)-(b.ts||0); return a.date<b.date?-1:1; });
   var cumulative=0, withRunning=[];
   for(var i=0;i<txns.length;i++){
     cumulative=round2(cumulative+Number(txns[i].amount));
