@@ -1,171 +1,157 @@
-# LG-Voucher-Tracker — setup guide
+# LG-Voucher-Tracker — Firebase Edition
 
-A small web app for tracking gift/store voucher barcodes, PINs, and remaining
-balances — Coles, Myer, or anywhere else — shared between two phones. No app
-store, no server to run — it's a static page on GitHub Pages, with your voucher
-data stored in a separate **private** GitHub repo that the app reads and writes
-to directly.
+A web app for tracking gift/store voucher barcodes, PINs, and remaining balances — Coles, Myer, or anywhere else — shared between two phones with **real-time sync via Firebase Realtime Database**.
 
-## Why two repos
+No app store. No server to run. It's a static page hosted on GitHub Pages, with data synced instantly across both phones using Firebase's free tier (1 GB storage, 10 GB/month, plenty for this use case).
 
-GitHub Pages on a free account only publishes **public** repos, and the published
-page itself is reachable by anyone with the link regardless of plan — GitHub
-doesn't gate the *site* to specific people (only Enterprise plans can do that).
-So this app splits things in two:
+## Why Firebase?
 
-- **`voucher-tracker`** (public) — just the app's code (this HTML file, icons).
-  Nothing sensitive lives here. This is what GitHub Pages hosts.
-- **`voucher-data`** (private) — holds one file, `vouchers.json`, with your
-  actual voucher barcodes, PINs and transaction history. It's never public.
-  The app reads/writes it using a personal access token that only that repo
-  will accept, entered once per phone and stored only in that phone's browser.
+- **Real-time**: changes appear on both phones within 1–2 seconds, no refresh needed
+- **Simple setup**: just 5 minutes, no collaborator invites or token management
+- **Free tier is enough**: 1 GB storage, 100 concurrent connections
+- **Offline-first**: the app works without signal (syncs when reconnected)
 
-You chose no in-app password screen, which is fine — the app *shell* being
-public doesn't expose your data, because without a valid token to the private
-data repo, the app has nothing to show. Just don't post the Pages link
-publicly (e.g. in a public tweet); treat it like any semi-private link.
+## Setup — 5 minutes
 
-## 1. Create the private data repo
+### Step 1: Create a Firebase project
 
-1. On GitHub, **New repository** → name it `voucher-data` (or anything you like)
-   → set visibility to **Private** → Create.
-2. Leave it empty — the app creates `vouchers.json` inside it automatically
-   the first time you save a voucher.
-3. Go to **Settings → Collaborators** on this repo → **Add people** → invite
-   your friend by their GitHub username. They'll need to accept the invite
-   (check their email or GitHub notifications).
+1. Go to **console.firebase.google.com**
+2. Click **Create a new project**
+3. Enter a name (e.g. "LG-Vouchers")
+4. **Disable Analytics** (not needed for this app)
+5. Click **Create project** → wait for it to provision
 
-## 2. Create the public app repo and turn on Pages
+### Step 2: Add a web app
 
-1. **New repository** → name it `voucher-tracker` → set visibility to
-   **Public** → Create.
-2. Upload every file in this folder (`index.html`, `manifest.json`, the
-   `icons/` folder) to that repo — easiest via the GitHub web UI's
-   **Add file → Upload files**, or `git push` if you're comfortable with git.
-3. Go to **Settings → Pages** → under "Build and deployment", set **Source**
-   to *Deploy from a branch*, branch `main`, folder `/ (root)` → **Save**.
-4. GitHub will show your live URL after a minute or two, something like:
-   `https://<your-username>.github.io/voucher-tracker/`
+1. In the Firebase console, click the **</> (web)** icon
+2. Enter an app name (e.g. "LG-Voucher-Tracker")
+3. Click **Register app**
+4. You'll see a config block with these 4 values — **copy all of them**:
+   - `apiKey`
+   - `authDomain`
+   - `databaseURL`
+   - `projectId`
 
-## 3. Create a personal access token (one per phone/person)
+### Step 3: Create and configure the Realtime Database
 
-Each of you needs your own token, scoped to **only** the private data repo:
+1. Left sidebar → **Build → Realtime Database**
+2. Click **Create Database**
+3. Choose a location closest to you
+4. Click **Start in test mode** (temporary, we'll fix it next)
+5. Once it's created, click the **Rules** tab
+6. Delete the existing rules and paste this:
 
-1. GitHub → click your profile photo → **Settings** → **Developer settings**
-   (bottom of the left sidebar) → **Personal access tokens** →
-   **Fine-grained tokens** → **Generate new token**.
-2. Give it a name like "Voucher Tracker – [your name]'s phone".
-3. **Resource owner**: yourself. **Repository access**: *Only select
-   repositories* → choose `voucher-data`.
-4. Under **Permissions → Repository permissions**, set **Contents** to
-   **Read and write**. Leave everything else as "No access".
-5. **Generate token** → copy it immediately (GitHub only shows it once).
+```json
+{
+  "rules": {
+    "rooms": {
+      "$roomId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}
+```
 
-Your friend does the same thing under their own GitHub account, once they've
-accepted the collaborator invite from step 1.
+7. Click **Publish**
 
-## 4. Open the app and connect
+This ensures your data stays secure and doesn't expire after 30 days (test mode expires).
 
-1. On each iPhone, open the Pages URL from step 2 in Safari.
-2. You'll land on the **Connect to GitHub** screen. Fill in:
-   - **GitHub owner**: your GitHub username (the owner of `voucher-data`)
-   - **Data repo name**: `voucher-data`
-   - **Access token**: paste the token from step 3
-3. Tap **Connect**. The app confirms it can read the repo, then shows your
-   (empty) voucher list.
-4. Repeat on the second phone with *their own* token, pointed at the same
-   owner/repo.
+### Step 4: Enable Anonymous Authentication
 
-## 5. Add it to the home screen (so it feels like a real app)
+1. Left sidebar → **Build → Authentication**
+2. Click **Get started**
+3. Click **Anonymous** → toggle it **on**
+4. Click **Save**
 
-In Safari: tap the **Share** button → **Add to Home Screen** → **Add**.
-It'll launch full-screen, no browser bar, with the app icon.
+### Step 5: Connect both phones
 
-## Using it
+1. Open the app on the first phone at `https://<your-username>.github.io/voucher-tracker`
+2. Tap **Settings** (gear icon, top right)
+3. Enter the 4 Firebase config values you copied in Step 2
+4. Enter a **room code** (any word, e.g. `our-vouchers`)
+5. Tap **Connect**
+6. Repeat on the second phone using the **same** room code
 
-The app has three modes, switched with the toggle at the top:
+That's it — you're now synced.
 
-- **Use vouchers** (default, opens first every time) — for checkout. Shows
-  your vouchers grouped by store. Tap one to see its barcode, PIN, and
-  balance, and to record what you just spent. This mode can't add, edit, or
-  rename vouchers — it's deliberately kept to just viewing and spending, so
-  there's nothing to fumble while you're at the register.
-- **Add vouchers** — for setting things up or cleaning up. Add a new
-  voucher (choose or type the store, then value, PIN, purchase date, and a
-  barcode photo), or edit/delete any existing voucher from the list below.
-- **Summary** — a spending dashboard across every voucher combined. Two
-  stat tiles up top show the total for the selected period and your
-  all-time total. Below that, a bar chart toggles between **Weekly** (last
-  8 weeks) and **Monthly** (last 6 months) — tap any bar to reveal its
-  exact amount and date range. A "by store" breakdown ranks how much went
-  to each store within that same period. It updates automatically as you
-  record transactions elsewhere in the app.
+## Using the app
 
-**Deleting expired vouchers**: once a voucher's balance hits zero it's
-marked EXPIRED automatically. You can remove expired ones two ways —
-tap "clear N expired" in the Use-mode summary line (or the equivalent
-button in Add mode) to wipe all of them at once, or open a single expired
-voucher in Use mode and tap "Delete this voucher" to remove just that one.
-Non-expired vouchers can only be deleted from Add mode, as a safeguard
-against removing one by accident while you're still using it.
+The app has three modes, toggled at the top:
 
-- **Add a voucher**: switch to Add mode → "+ Add a new voucher" → choose
-  or type the store (Coles, Myer, etc. — start typing for suggestions),
-  then enter the value, PIN, purchase date, and a photo of the barcode
-  (camera or photo library). The dashboard groups vouchers under their
-  store, each with its own active-count and remaining-balance subtotal.
-- **At checkout**: open the voucher, tap the barcode photo — it opens
-  full-screen on a white background with the balance and a PIN reveal
-  button underneath, ready to scan.
-- **After paying**: go back into the voucher and record the date and amount
-  spent. The balance and status (NEW / IN-USE / EXPIRED) update
-  automatically — EXPIRED is set automatically once the balance hits zero.
-- **Both phones**: whoever records a transaction saves it straight to the
-  shared private repo. Pull down isn't wired up — tap the refresh icon
-  (top right) if you want to double-check you're seeing the other person's
-  latest update; the app also auto-refreshes whenever you reopen it. The
-  small sync line under the header shows both a relative time ("Synced 2m
-  ago") and the exact date/time of the last successful sync.
+### Use vouchers (default)
+For checkout. Shows vouchers grouped by store with remaining balance. Tap one to see its barcode (full-screen for scanning), PIN, and balance. Record what you spent — balance updates instantly across both phones.
+
+### Add vouchers
+Set up or manage your collection. Add a new voucher with store, value, PIN, purchase date, and a barcode photo. Edit or delete existing vouchers from this mode (delete is locked behind `#admin` URL suffix for safety).
+
+### Summary
+Spending dashboard. Two stat tiles show total for the selected period and all-time total. A bar chart toggles between weekly (last 8 weeks) and monthly (last 6 months) — tap a bar to see exact amount and date range. Below that, a by-store breakdown shows which stores got how much.
+
+## Managing vouchers
+
+- **Add**: Switch to Add mode → **+ Add a new voucher** → fill in details → take a barcode photo (clear, well-lit) → save
+- **At checkout**: open the voucher in Use mode → tap the barcode photo → goes full-screen on white background with balance and PIN button underneath, ready to scan
+- **Record spending**: go back into the voucher after checkout → record the date and amount spent → balance updates automatically
+- **Expired vouchers**: once balance hits zero, the voucher is marked EXPIRED automatically. You can delete it from Add mode, or delete all at once with a "clear N expired" button
+- **Sync**: automatic, real-time. Both phones stay in sync — no manual refresh needed
+
+## Delete protection (`#admin`)
+
+Delete actions (removing individual vouchers, clearing expired ones, deleting transactions) are only visible when you open the app with `#admin` at the end of the URL:
+
+```
+https://<your-username>.github.io/voucher-tracker/#admin
+```
+
+This prevents accidental deletions in normal use. You can bookmark this URL on your PC if you need admin access regularly.
+
+## Offline
+
+The app works without internet signal. It syncs when you reconnect — Firebase handles the queueing automatically.
+
+## Barcode photos
+
+Photos are compressed before saving (resized + JPEG quality 72%) so they don't bloat your Firebase storage.
+
+## Free tier limits
+
+- **1 GB total storage** — each voucher with a barcode photo is roughly 50–100 KB, so you can store hundreds
+- **10 GB/month download** — syncing 100 vouchers once per day uses ~3 MB/month
+- **100 concurrent connections** — two phones = 2 connections, plenty of headroom
 
 ## Troubleshooting
 
-**"Can't find that repository — check the owner and repo name in Settings"**
-This means GitHub couldn't find the repo *or* the token can't see it (GitHub
-returns the same error for both, to avoid revealing private repos exist).
-Check, in order:
+**"Not connected to Firebase"**
+- Check your 4 config values are correct (copy-paste from Firebase console)
+- Check your `authDomain` includes `.firebaseapp.com` and your `databaseURL` is the full `https://...` URL
+- Make sure Anonymous auth is enabled in Firebase console
+- Wait a moment and try again
 
-1. **Owner** in Settings is the exact GitHub username that owns the private
-   data repo — not a display name, and not necessarily *your* username if
-   your friend owns it.
-2. **Data repo name** is spelled exactly right, with no `.git` suffix and
-   no owner prefix (just `voucher-data`, not `username/voucher-data`).
-3. The repo actually exists — open `github.com/<owner>/<repo>` in a browser
-   and confirm it loads.
-4. **If this is the second phone**, the invited collaborator must actually
-   **accept the invite** (check email or github.com notifications) — until
-   accepted, their token gets exactly this error, as if the repo doesn't
-   exist.
-5. The **personal access token** was created with *Repository access: Only
-   select repositories* → this exact repo selected, and **Contents: Read
-   and write** permission ticked. A token scoped to the wrong repo, the
-   wrong account, or with no repo selected will also produce this error.
-6. The token hasn't expired (fine-grained tokens can have short default
-   expirations — check under Developer settings → Personal access tokens).
+**Changes not syncing**
+- Check the sync dot under the title — should be green/live, not red/offline
+- Open Chrome DevTools console (F12) and look for error messages
+- Refresh the page once if offline, then reconnect
 
-The app now checks repo access as its own step when you hit **Connect**, so
-this error should appear right away if something's off, rather than only
-showing up later when you try to save a voucher.
+**Barcode photo won't save**
+- Make sure it's a valid image file (JPG, PNG, GIF, WebP)
+- Try a smaller, simpler image
+- If the photo is huge, the compression step might fail — try a different photo
 
-## Things worth knowing
+**Lost data or need to start fresh**
+- Go to Settings → **Disconnect from Firebase**
+- Go to Firebase console → **Build → Realtime Database** → click the 3-dot menu → delete the database
+- Reconnect in the app — it will create a fresh database with just what's on that phone
 
-- **No offline mode.** Every open/save talks to GitHub, so you'll need
-  signal or Wi-Fi. The last-loaded data is cached on-device so the screen
-  isn't blank if a request briefly fails, but new saves need a connection.
-- **Conflicts.** If you both edit within the same few seconds, whichever
-  save reaches GitHub last wins — fine for two people who aren't editing
-  at the exact same moment, which is the expected case here.
-- **Losing a phone.** Revoke that phone's token from GitHub → Settings →
-  Developer settings → Personal access tokens at any time; the other
-  phone keeps working.
-- **The barcode photo** is compressed before saving (resized + JPEG) so it
-  doesn't bloat the data file or slow syncing down on mobile data.
+## On your second phone
+
+Once the first phone is set up, the second phone just needs the same 4 config values and the same room code. It will instantly sync with whatever is already in the database.
+
+## Moving back to GitHub storage (if you ever want to)
+
+If you decide Firebase isn't for you, the old GitHub-based version is in this repo's commit history. You can revert to it, but Firebase is simpler and more reliable for real-time sync.
+
+---
+
+**Questions?** The Firebase console is pretty straightforward — if you get stuck on any step, their documentation is helpful. The app itself shows hints in the Settings screen too.

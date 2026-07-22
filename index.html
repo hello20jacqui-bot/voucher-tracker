@@ -15,6 +15,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<!-- Firebase SDKs (compat for plain JS) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <style>
   :root{
     --color-bg:#F3F6F1;
@@ -27,6 +31,7 @@
     --color-inuse:#1F5C4A;
     --color-expired:#A24936;
     --color-border:#DEE4D9;
+    --color-admin:#8B5C1A;
     --font-display:'Space Grotesk',sans-serif;
     --font-body:'Inter',sans-serif;
     --font-mono:'IBM Plex Mono',monospace;
@@ -56,10 +61,15 @@
   .icon-btn svg{width:18px;height:18px;}
   .sync-row{display:flex;align-items:center;gap:6px;padding:0 20px 14px;font-family:var(--font-mono);font-size:11.5px;color:var(--color-ink-soft);}
   .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--color-ink-soft);flex-shrink:0;}
+  .sync-dot.live{background:var(--color-primary);animation:pulse 2s infinite ease-in-out;}
   .sync-dot.synced{background:var(--color-primary);}
   .sync-dot.syncing{background:#C99A2E;animation:pulse 1s infinite ease-in-out;}
   .sync-dot.error{background:var(--color-expired);}
+  .sync-dot.offline{background:var(--color-ink-soft);}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+
+  .admin-banner{margin:0 20px 12px;padding:10px 14px;background:#FEF3E2;border:1.5px solid #E0B868;border-radius:10px;font-family:var(--font-mono);font-size:11.5px;color:var(--color-admin);display:flex;align-items:center;gap:8px;font-weight:600;}
+  .admin-banner svg{width:15px;height:15px;flex-shrink:0;}
 
   .summary{padding:0 20px 18px;font-size:13.5px;color:var(--color-ink-soft);}
   .summary b{color:var(--color-ink);font-family:var(--font-mono);font-weight:600;}
@@ -141,10 +151,6 @@
   .btn-block{width:100%;}
   .btn:disabled{opacity:0.55;}
 
-  .fab{position:fixed;right:20px;bottom:calc(22px + var(--safe-bottom));width:58px;height:58px;border-radius:50%;background:var(--color-primary);color:#fff;border:none;box-shadow:0 6px 18px rgba(31,92,74,0.38);display:flex;align-items:center;justify-content:center;z-index:30;}
-  .fab:active{transform:scale(0.95);}
-  .fab svg{width:26px;height:26px;}
-
   /* ---------- Forms ---------- */
   .screen{padding:4px 20px 40px;}
   .field{margin-bottom:18px;}
@@ -206,11 +212,11 @@
   .steps{margin:0 0 20px;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;}
   .steps li{display:flex;gap:10px;font-size:13.5px;color:var(--color-ink-soft);line-height:1.5;}
   .steps li b{color:var(--color-ink);font-family:var(--font-mono);}
-  .advanced-toggle{border:none;background:transparent;color:var(--color-primary);font-weight:600;font-size:12.5px;padding:6px 0;}
 
   /* ---------- Toast ---------- */
   .toast{position:fixed;left:20px;right:20px;bottom:calc(24px + var(--safe-bottom));z-index:200;background:var(--color-ink);color:#fff;padding:13px 16px;border-radius:12px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,0.25);animation:toast-in 0.18s ease-out;}
   .toast.error{background:var(--color-expired);}
+  .toast.warning{background:var(--color-admin);}
   @keyframes toast-in{from{transform:translateY(8px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 
   @media (prefers-reduced-motion:reduce){*{animation-duration:0.001ms !important;}}
@@ -222,81 +228,37 @@
 (function(){
 'use strict';
 
-var GH_API='https://api.github.com';
-var CONFIG_KEY='voucherTrackerConfig_v1';
-var CACHE_KEY='voucherTrackerCache_v1';
+var CONFIG_KEY='voucherFirebaseConfig_v1';
 
 var state={
   mode:'use',
   view:'useDashboard',
-  config:null,
+  config:null,       /* {apiKey, authDomain, databaseURL, projectId, roomCode} */
   vouchers:[],
-  sha:null,
+  deletedIds:{},
   activeVoucherId:null,
   editingVoucherId:null,
   photoDraft:null,
-  syncStatus:'idle',
-  syncError:null,
+  syncStatus:'offline',
   lastSynced:null,
   checkoutId:null,
   pinRevealed:{}
 };
 
-/* ---------------- storage ---------------- */
+var db=null;         /* Firebase database ref */
+var dataRef=null;    /* ref to /rooms/{roomCode} */
+var unsubscribe=null;/* listener cleanup */
+
+/* ---------------- admin mode ---------------- */
+function isAdmin(){
+  return window.location.hash==='#admin' || (new URLSearchParams(window.location.search)).get('admin')==='1';
+}
+
+/* ---------------- local config storage ---------------- */
 function loadConfig(){ try{ var raw=localStorage.getItem(CONFIG_KEY); return raw?JSON.parse(raw):null; }catch(e){ return null; } }
 function saveConfigLS(cfg){ localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); }
-function clearConfigLS(){ localStorage.removeItem(CONFIG_KEY); localStorage.removeItem(CACHE_KEY); }
-function loadCache(){ try{ var raw=localStorage.getItem(CACHE_KEY); return raw?JSON.parse(raw):null; }catch(e){ return null; } }
-function saveCache(dataObj, sha){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify({data:dataObj, sha:sha, cachedAt:Date.now()})); }catch(e){} }
+function clearConfigLS(){ localStorage.removeItem(CONFIG_KEY); }
 function clone(x){ return typeof structuredClone==='function' ? structuredClone(x) : JSON.parse(JSON.stringify(x)); }
-
-/* ---------------- base64 (unicode-safe) ---------------- */
-function b64EncodeUnicode(str){
-  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,function(_,p1){ return String.fromCharCode(parseInt(p1,16)); }));
-}
-function b64DecodeUnicode(b64){
-  return decodeURIComponent(atob(b64).split('').map(function(c){ return '%'+('0'+c.charCodeAt(0).toString(16)).slice(-2); }).join(''));
-}
-
-/* ---------------- GitHub API ---------------- */
-function ghCheckRepo(cfg){
-  var url=GH_API+'/repos/'+encodeURIComponent(cfg.owner)+'/'+encodeURIComponent(cfg.repo);
-  return fetch(url,{headers:{Authorization:'Bearer '+cfg.token, Accept:'application/vnd.github+json'}}).then(function(res){
-    if(!res.ok){ return res.json().catch(function(){return {};}).then(function(j){ throw new Error(friendlyGhError(res.status, j.message)); }); }
-    return res.json();
-  });
-}
-function ghGetFile(cfg){
-  var url=GH_API+'/repos/'+encodeURIComponent(cfg.owner)+'/'+encodeURIComponent(cfg.repo)+'/contents/'+encodeURIComponent(cfg.path)+(cfg.branch?('?ref='+encodeURIComponent(cfg.branch)):'');
-  return fetch(url,{headers:{Authorization:'Bearer '+cfg.token, Accept:'application/vnd.github+json'}}).then(function(res){
-    if(res.status===404){ return {data:{vouchers:[]}, sha:null}; }
-    if(!res.ok){ return res.json().catch(function(){return {};}).then(function(j){ throw new Error(friendlyGhError(res.status, j.message)); }); }
-    return res.json().then(function(json){
-      var content=b64DecodeUnicode(json.content.replace(/\n/g,''));
-      var parsed;
-      try{ parsed=JSON.parse(content); }catch(e){ parsed={vouchers:[]}; }
-      if(!parsed.vouchers) parsed.vouchers=[];
-      return {data:parsed, sha:json.sha};
-    });
-  });
-}
-function ghPutFile(cfg, dataObj, sha, message){
-  var url=GH_API+'/repos/'+encodeURIComponent(cfg.owner)+'/'+encodeURIComponent(cfg.repo)+'/contents/'+encodeURIComponent(cfg.path);
-  var body={ message: message||'Update vouchers.json', content: b64EncodeUnicode(JSON.stringify(dataObj,null,2)) };
-  if(cfg.branch) body.branch=cfg.branch;
-  if(sha) body.sha=sha;
-  return fetch(url,{method:'PUT', headers:{Authorization:'Bearer '+cfg.token, Accept:'application/vnd.github+json','Content-Type':'application/json'}, body:JSON.stringify(body)}).then(function(res){
-    if(res.status===409){ var e=new Error('conflict'); e.conflict=true; throw e; }
-    if(!res.ok){ return res.json().catch(function(){return {};}).then(function(j){ throw new Error(friendlyGhError(res.status, j.message)); }); }
-    return res.json().then(function(json){ return json.content.sha; });
-  });
-}
-function friendlyGhError(status, detail){
-  if(status===401) return 'That access token was rejected. Check it in Settings.';
-  if(status===404) return "Can't find that repository. Check the owner/repo name in Settings, that the repo exists, and — if it's not your own — that you've accepted the collaborator invite.";
-  if(status===403) return "GitHub blocked the request — the token may not have Contents: Read and write permission on this repo, or you've hit a rate limit.";
-  return 'GitHub error ('+status+')'+(detail?': '+detail:'');
-}
 
 /* ---------------- domain logic ---------------- */
 function round2(n){ return Math.round((Number(n)+Number.EPSILON)*100)/100; }
@@ -343,13 +305,12 @@ function allTransactionsFlat(){
   return out;
 }
 function parseISODate(iso){ return new Date(iso+'T00:00:00'); }
-function addDays(d,n){ var r=new Date(d.getFullYear(),d.getMonth(),d.getDate()+n); return r; }
+function addDays(d,n){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n); }
 function startOfWeek(d){ var day=(d.getDay()+6)%7; return new Date(d.getFullYear(),d.getMonth(),d.getDate()-day); }
 function fmtShortDate(d){ return d.toLocaleDateString('en-AU',{day:'numeric',month:'short'}); }
 function fmtWeekRange(s,e){ return fmtShortDate(s)+' – '+fmtShortDate(e); }
 function fmtMonthLabel(d){ return d.toLocaleDateString('en-AU',{month:'short',year:'2-digit'}); }
 function fmtMonthFull(d){ return d.toLocaleDateString('en-AU',{month:'long',year:'numeric'}); }
-
 function buildWeekBuckets(n){
   var curStart=startOfWeek(new Date());
   var buckets=[];
@@ -419,57 +380,134 @@ function compressImage(file, maxWidth, quality){
   });
 }
 
-/* ---------------- sync ---------------- */
-function initialLoad(){
-  state.config=loadConfig();
-  var cached=loadCache();
-  if(cached){ state.vouchers=(cached.data&&cached.data.vouchers)||[]; state.sha=cached.sha; state.lastSynced=cached.cachedAt; }
-  if(!state.config){ state.view='settings'; render(); return; }
-  render();
-  refreshFromRemote(true);
+/* ================================================================
+   FIREBASE — real-time sync
+   ================================================================
+   Data lives in Firebase Realtime Database at:
+     /rooms/{roomCode}/vouchers   — array of voucher objects
+     /rooms/{roomCode}/deletedIds — object of {id: true}
+
+   A single onValue listener keeps both phones in sync instantly.
+   Every write goes straight to Firebase; if it succeeds, the
+   listener fires on both phones and updates the UI automatically.
+   ================================================================ */
+
+function initFirebase(cfg){
+  if(db) return; /* already initialised */
+  try{
+    firebase.initializeApp({
+      apiKey: cfg.apiKey,
+      authDomain: cfg.authDomain,
+      databaseURL: cfg.databaseURL,
+      projectId: cfg.projectId
+    });
+  }catch(e){
+    /* Already initialised (e.g. hot reload) — that's fine */
+  }
+  db=firebase.database();
+  /* Enable disk persistence so data is available offline */
+  try{ db.goOnline(); }catch(e){}
 }
-function refreshFromRemote(silent){
-  if(!state.config) return Promise.resolve();
-  state.syncStatus='syncing';
-  if(!silent) render();
-  return ghGetFile(state.config).then(function(res){
-    state.vouchers=res.data.vouchers||[];
-    state.sha=res.sha;
-    state.syncStatus='synced';
+
+function startListening(cfg){
+  if(unsubscribe){ unsubscribe(); unsubscribe=null; }
+  var roomCode=cfg.roomCode.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'');
+  dataRef=db.ref('rooms/'+roomCode);
+
+  /* Sign in anonymously (required for database rules) */
+  firebase.auth().signInAnonymously().catch(function(err){
+    showToast('Auth failed: '+err.message,'error');
+  });
+
+  /* Real-time listener — fires on every change from any phone */
+  var callback=dataRef.on('value', function(snapshot){
+    var val=snapshot.val()||{};
+    state.vouchers=(val.vouchers||[]).filter(function(v){ return v && v.id; });
+    state.deletedIds=val.deletedIds||{};
+    state.syncStatus='live';
     state.lastSynced=Date.now();
-    saveCache(res.data, res.sha);
+    render();
+  }, function(err){
+    state.syncStatus='error';
+    showToast('Sync error: '+err.message,'error');
+    render();
+  });
+
+  unsubscribe=function(){ dataRef.off('value', callback); };
+
+  /* Track connection state */
+  var connRef=db.ref('.info/connected');
+  connRef.on('value', function(snap){
+    if(snap.val()===true){
+      if(state.syncStatus==='offline') state.syncStatus='live';
+    } else {
+      state.syncStatus='offline';
+    }
+    render();
+  });
+}
+
+/* Write the full dataset to Firebase */
+function stripUndefined(obj){
+  /* Firebase rejects undefined anywhere in the tree — recursively replace with null */
+  if(obj===undefined) return null;
+  if(obj===null || typeof obj!=='object') return obj;
+  if(Array.isArray(obj)) return obj.map(stripUndefined);
+  var out={};
+  Object.keys(obj).forEach(function(k){ out[k]=stripUndefined(obj[k]); });
+  return out;
+}
+function writeToFirebase(vouchers, deletedIds){
+  if(!dataRef){
+    showToast('Not connected to Firebase.','error');
+    return Promise.resolve(false);
+  }
+  state.syncStatus='syncing';
+  var clean=stripUndefined(vouchers.map(function(v){
+    var c=clone(v);
+    if(!c.transactions) c.transactions=[];
+    return c;
+  }));
+  return dataRef.set({
+    vouchers: clean,
+    deletedIds: deletedIds||state.deletedIds||{},
+    lastUpdated: firebase.database.ServerValue.TIMESTAMP
+  }).then(function(){
+    state.syncStatus='live';
+    return true;
   }).catch(function(err){
     state.syncStatus='error';
-    state.syncError=err.message||'Could not reach GitHub';
-    if(!silent) showToast(state.syncError,'error');
-  }).then(function(){ render(); });
+    showToast('Save failed: '+err.message,'error');
+    render();
+    return false;
+  });
 }
-function persist(mutator, message){
-  if(!state.config){ showToast('Connect to GitHub in Settings first.','error'); return Promise.resolve(false); }
-  var prev=state.vouchers;
+
+/* Persist a mutation: apply locally, write to Firebase */
+function persist(mutator, opts){
+  opts=opts||{};
   var next=mutator(clone(state.vouchers));
-  state.vouchers=next;
-  state.syncStatus='syncing';
-  render();
-  var sha=state.sha, attempt=0;
-  function attemptPut(){
-    return ghPutFile(state.config, {vouchers:next}, sha, message).then(function(newSha){
-      state.sha=newSha; state.syncStatus='synced'; state.lastSynced=Date.now();
-      saveCache({vouchers:next}, newSha);
-      render();
-      return true;
-    }).catch(function(err){
-      if(err.conflict && attempt<1){
-        attempt++;
-        return ghGetFile(state.config).then(function(remote){ sha=remote.sha; return attemptPut(); });
-      }
-      state.vouchers=prev; state.syncStatus='error'; state.syncError=err.message||'Sync failed';
-      showToast(state.syncError,'error');
-      render();
-      return false;
-    });
+  var dels=clone(state.deletedIds);
+
+  if(opts.deletedId) dels[opts.deletedId]=true;
+  if(opts.deletedIds){
+    opts.deletedIds.forEach(function(id){ dels[id]=true; });
   }
-  return attemptPut();
+
+  /* Optimistic local update */
+  state.vouchers=next;
+  state.deletedIds=dels;
+  render();
+
+  return writeToFirebase(next, dels);
+}
+
+function initialLoad(){
+  state.config=loadConfig();
+  if(!state.config){ state.view='settings'; render(); return; }
+  initFirebase(state.config);
+  startListening(state.config);
+  render();
 }
 
 /* ---------------- toast ---------------- */
@@ -477,14 +515,16 @@ var toastTimer=null;
 function showToast(msg, type){
   var existing=document.querySelector('.toast'); if(existing) existing.remove();
   var el=document.createElement('div');
-  el.className='toast'+(type==='error'?' error':'');
+  el.className='toast'+(type==='error'?' error':(type==='warning'?' warning':''));
   el.textContent=msg;
   document.body.appendChild(el);
   clearTimeout(toastTimer);
-  toastTimer=setTimeout(function(){ el.remove(); }, 3200);
+  toastTimer=setTimeout(function(){ el.remove(); }, 3800);
 }
 
-/* ---------------- rendering ---------------- */
+/* ================================================================
+   RENDERING — identical UI, powered by Firebase
+   ================================================================ */
 var appEl;
 function goHome(){
   state.view = state.mode==='add' ? 'addHome' : (state.mode==='summary' ? 'summaryDashboard' : 'useDashboard');
@@ -508,9 +548,21 @@ function render(){
   attachEvents();
 }
 
+function renderAdminBanner(){
+  if(!isAdmin()) return '';
+  return '<div class="admin-banner">'+
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'+
+    'Admin mode — delete actions enabled'+
+  '</div>';
+}
+
 function renderTopbar(title, showBack){
-  var syncCls = state.syncStatus==='syncing'?'syncing':(state.syncStatus==='error'?'error':(state.syncStatus==='synced'?'synced':''));
-  var syncLabel = state.syncStatus==='syncing' ? 'Syncing…' : (state.syncStatus==='error' ? 'Sync failed' : (state.lastSynced ? 'Synced '+relTime(state.lastSynced)+' · '+fmtDateTime(state.lastSynced) : 'Not synced yet'));
+  var syncCls = state.syncStatus;
+  var syncLabel = state.syncStatus==='live' ? 'Live · synced '+relTime(state.lastSynced)
+    : (state.syncStatus==='syncing' ? 'Saving…'
+    : (state.syncStatus==='error' ? 'Connection lost'
+    : (state.syncStatus==='offline' ? 'Offline — waiting for connection'
+    : 'Not connected')));
   var left = showBack
     ? '<button class="icon-btn" data-action="go-home" aria-label="Back">'+iconBack()+'</button>'
     : '<h1>'+escapeHtml(title)+'</h1>';
@@ -519,11 +571,11 @@ function renderTopbar(title, showBack){
   '<div class="topbar">'+
     left+
     '<div class="topbar-actions">'+
-      (state.config ? '<button class="icon-btn" data-action="refresh" aria-label="Refresh">'+iconRefresh()+'</button>' : '')+
       '<button class="icon-btn" data-action="go-settings" aria-label="Settings">'+iconSettings()+'</button>'+
     '</div>'+
   '</div>'+
-  (isHome ? '<div class="sync-row"><span class="sync-dot '+syncCls+'"></span><span>'+syncLabel+'</span></div>' : '');
+  (isHome ? '<div class="sync-row"><span class="sync-dot '+syncCls+'"></span><span>'+syncLabel+'</span></div>' : '')+
+  (isHome ? renderAdminBanner() : '');
 }
 
 function renderModeSwitch(){
@@ -572,6 +624,7 @@ function renderUseDashboard(){
   var totalRemaining=0, activeCount=0;
   state.vouchers.forEach(function(v){ var c=computeVoucher(v); if(c.status!=='EXPIRED'){ totalRemaining+=c.balance; activeCount++; } });
   var expiredCount=countExpired();
+  var admin=isAdmin();
 
   var body;
   if(state.vouchers.length===0){
@@ -579,24 +632,24 @@ function renderUseDashboard(){
       '<button class="btn btn-primary" data-action="set-mode" data-mode="add">Go to Add mode</button></div>';
   } else {
     body = '<div class="summary">'+activeCount+' active · <b>'+fmtMoney(totalRemaining)+'</b> remaining'+
-      (expiredCount>0 ? ' · <button class="link-btn" data-action="clear-expired">clear '+expiredCount+' expired</button>' : '')+
+      (expiredCount>0 && admin ? ' · <button class="link-btn" data-action="clear-expired">clear '+expiredCount+' expired</button>' : '')+
+      (expiredCount>0 && !admin ? ' · '+expiredCount+' expired' : '')+
       '</div>'+
       renderGroupedList(state.vouchers, renderVoucherCard);
   }
-
   return renderTopbar('LG-Voucher-Tracker', false) + renderModeSwitch() + body;
 }
 
 function renderAddHome(){
   var expiredCount=countExpired();
+  var admin=isAdmin();
   var body = '<button class="btn btn-primary btn-block" data-action="go-add-form" style="margin-bottom:14px;">+ Add a new voucher</button>'+
-    (expiredCount>0 ? '<button class="btn btn-danger btn-block" data-action="clear-expired" style="margin-bottom:22px;">Clear '+expiredCount+' expired voucher'+(expiredCount>1?'s':'')+'</button>' : '<div style="margin-bottom:22px;"></div>');
+    (expiredCount>0 && admin ? '<button class="btn btn-danger btn-block" data-action="clear-expired" style="margin-bottom:22px;">Clear '+expiredCount+' expired voucher'+(expiredCount>1?'s':'')+'</button>' : '<div style="margin-bottom:22px;"></div>');
 
   if(state.vouchers.length>0){
     body += '<h3 style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-ink-soft);margin-bottom:4px;">All vouchers</h3>'+
       renderGroupedList(state.vouchers, renderManageCard);
   }
-
   return renderTopbar('Add vouchers', false) + renderModeSwitch() + '<div class="screen" style="padding-top:0;">'+body+'</div>';
 }
 
@@ -619,6 +672,7 @@ function renderVoucherCard(v){
 function renderManageCard(v){
   var c=computeVoucher(v);
   var expiredCls = c.status==='EXPIRED' ? ' is-expired' : '';
+  var admin=isAdmin();
   return '<div class="voucher-card'+expiredCls+'">'+
     '<div class="vc-top">'+
       '<div><div class="vc-store">'+escapeHtml(voucherStore(v))+'</div><div class="vc-label">'+escapeHtml(voucherTitle(v))+'</div><div class="vc-sub">Purchased '+fmtDate(v.purchaseDate)+'</div></div>'+
@@ -631,17 +685,17 @@ function renderManageCard(v){
     '</div>'+
     '<div class="manage-actions">'+
       '<button class="btn btn-secondary" data-action="edit-voucher" data-id="'+v.id+'">Edit</button>'+
-      '<button class="btn btn-danger" data-action="delete-voucher" data-id="'+v.id+'">Delete</button>'+
+      (admin ? '<button class="btn btn-danger" data-action="delete-voucher" data-id="'+v.id+'">Delete</button>' : '')+
     '</div>'+
   '</div>';
 }
-
 
 function renderUseDetail(){
   var v=getVoucher(state.activeVoucherId);
   if(!v){ goHome(); return state.mode==='add' ? renderAddHome() : renderUseDashboard(); }
   var c=computeVoucher(v);
   var pinShown = !!state.pinRevealed[v.id];
+  var admin=isAdmin();
 
   var ledgerHtml = c.ledger.length===0
     ? '<div class="ledger-empty">No transactions recorded yet.</div>'
@@ -650,7 +704,7 @@ function renderUseDetail(){
           '<div class="date">'+fmtDate(t.date)+'</div>'+
           '<div class="spent tabular">− '+fmtMoney(t.amount)+'</div>'+
           '<div class="after tabular">'+fmtMoney(t.balanceAfter)+'</div>'+
-          '<button class="del" data-action="delete-txn" data-id="'+v.id+'" data-txn="'+t.id+'" aria-label="Delete">×</button>'+
+          (admin ? '<button class="del" data-action="delete-txn" data-id="'+v.id+'" data-txn="'+t.id+'" aria-label="Delete">×</button>' : '')+
         '</div>';
       }).join('');
 
@@ -672,10 +726,12 @@ function renderUseDetail(){
       '<div class="detail-row"><span class="k">Original value</span><span class="v tabular">'+fmtMoney(v.initialValue)+'</span></div>'+
       '<div class="detail-row"><span class="k">Purchased</span><span class="v">'+fmtDate(v.purchaseDate)+'</span></div>'+
     '</div>'+
-
     (c.status==='EXPIRED'
-      ? '<div class="add-txn"><h3>This voucher is fully used</h3><p style="font-size:13px;color:var(--color-ink-soft);margin-bottom:14px;">No balance left to spend. You can remove it once you\'re done checking its history.</p>'+
-          '<button class="btn btn-danger btn-block" data-action="delete-voucher" data-id="'+v.id+'">Delete this voucher</button></div>'
+      ? '<div class="add-txn"><h3>This voucher is fully used</h3><p style="font-size:13px;color:var(--color-ink-soft);margin-bottom:14px;">No balance left to spend.'+
+          (admin ? ' You can remove it now.' : ' To delete, open this page in admin mode from a PC browser.')+
+        '</p>'+
+          (admin ? '<button class="btn btn-danger btn-block" data-action="delete-voucher" data-id="'+v.id+'">Delete this voucher</button>' : '')+
+        '</div>'
       : '<div class="add-txn"><h3>Record a transaction</h3>'+
           '<form data-form="add-txn" data-id="'+v.id+'">'+
             '<div class="field-row">'+
@@ -685,7 +741,6 @@ function renderUseDetail(){
             '<button class="btn btn-primary btn-block" type="submit">Add transaction</button>'+
           '</form>'+
         '</div>')+
-
     '<div class="ledger"><h3>Transaction history</h3>'+ledgerHtml+'</div>'+
   '</div>';
 }
@@ -710,6 +765,7 @@ function renderVoucherForm(v){
   var isEdit=!!v;
   var title=isEdit?'Edit voucher':'Add a voucher';
   var photo = state.photoDraft!==null ? state.photoDraft : (v?v.barcodeImage:null);
+  var admin=isAdmin();
   return renderTopbar('', true)+
   '<div class="back-row"><h2>'+title+'</h2></div>'+
   '<div class="screen">'+
@@ -741,7 +797,7 @@ function renderVoucherForm(v){
       '<div class="form-actions">'+
         '<button class="btn btn-primary btn-block" type="submit">'+(isEdit?'Save changes':'Save voucher')+'</button>'+
       '</div>'+
-      (isEdit ? '<div class="form-actions"><button class="btn btn-danger btn-block" type="button" data-action="delete-voucher" data-id="'+v.id+'">Delete this voucher</button></div>' : '')+
+      (isEdit && admin ? '<div class="form-actions"><button class="btn btn-danger btn-block" type="button" data-action="delete-voucher" data-id="'+v.id+'">Delete this voucher</button></div>' : '')+
     '</form>'+
   '</div>';
 }
@@ -813,33 +869,40 @@ function renderSummaryDashboard(){
 }
 
 function renderSettings(){
-  var cfg=state.config||{owner:'',repo:'',path:'vouchers.json',branch:'main',token:''};
+  var cfg=state.config||{apiKey:'',authDomain:'',databaseURL:'',projectId:'',roomCode:''};
   var connected=!!state.config;
+  var admin=isAdmin();
   return renderTopbar('', connected)+
-  '<div class="back-row" style="'+(connected?'':'padding-top:calc(18px + var(--safe-top));')+'"><h2>'+(connected?'Settings':'Connect to GitHub')+'</h2></div>'+
+  '<div class="back-row" style="'+(connected?'':'padding-top:calc(18px + var(--safe-top));')+'"><h2>'+(connected?'Settings':'Connect to Firebase')+'</h2></div>'+
   '<div class="screen">'+
-    (connected ? '' : '<p class="lead">This app stores your vouchers as a file in a private GitHub repo, so both phones stay in sync. You\'ll need:</p>'+
+    (connected ? '' :
+      '<p class="lead">This app uses Firebase to sync vouchers between phones in real time — no manual refresh needed. One-time setup takes about 5 minutes.</p>'+
       '<ul class="steps">'+
-        '<li><b>1.</b> A private GitHub repo (just for the data — the app code lives in a separate, public one).</li>'+
-        '<li><b>2.</b> Both of you added as collaborators on that private repo.</li>'+
-        '<li><b>3.</b> A personal access token, scoped only to that repo, entered below on each phone.</li>'+
+        '<li><b>1.</b> Go to <b>console.firebase.google.com</b> and create a new project (disable Analytics when asked).</li>'+
+        '<li><b>2.</b> Click the web icon <b>&lt;/&gt;</b> to add a web app. Copy the 4 config values shown below.</li>'+
+        '<li><b>3.</b> In the left sidebar, open <b>Build → Realtime Database</b> → Create Database → choose a location → Start in <b>test mode</b>.</li>'+
+        '<li><b>4.</b> Then click the <b>Rules</b> tab and paste these rules so they don\'t expire after 30 days:</li>'+
       '</ul>'+
-      '<p class="lead">Full setup steps are in the README that came with this app.</p>')+
+      '<div style="background:var(--color-ink);color:#c6e0d0;padding:12px 14px;border-radius:10px;font-family:var(--font-mono);font-size:11.5px;line-height:1.6;margin-bottom:20px;overflow-x:auto;white-space:pre;">{\n  "rules": {\n    "rooms": {\n      "$roomId": {\n        ".read": "auth != null",\n        ".write": "auth != null"\n      }\n    }\n  }\n}</div>'+
+      '<ul class="steps">'+
+        '<li><b>5.</b> Open <b>Build → Authentication</b> → Get started → Sign-in method → enable <b>Anonymous</b>.</li>'+
+        '<li><b>6.</b> Pick a room code (any word) and use the same one on both phones.</li>'+
+      '</ul>')+
     '<form data-form="settings">'+
-      '<div class="field"><label>GitHub owner (username or org)</label><input type="text" name="owner" style="font-family:var(--font-body);" value="'+escapeAttr(cfg.owner)+'" placeholder="e.g. ganesh-dev" required></div>'+
-      '<div class="field"><label>Data repo name</label><input type="text" name="repo" style="font-family:var(--font-body);" value="'+escapeAttr(cfg.repo)+'" placeholder="e.g. coles-voucher-data" required></div>'+
-      '<div class="field"><label>Access token</label><div class="pin-wrap"><input type="password" name="token" id="tokenInput" value="'+escapeAttr(cfg.token)+'" placeholder="github_pat_…" style="padding-right:60px;font-family:var(--font-body);" required>'+
-        '<button type="button" class="pin-toggle" data-action="toggle-token-input">Show</button></div>'+
-        '<div class="hint">Stored only on this phone — never in the app\'s code.</div>'+
-      '</div>'+
-      '<button type="button" class="advanced-toggle" data-action="toggle-advanced">Advanced options</button>'+
-      '<div id="advancedFields" style="display:'+(state.showAdvanced?'block':'none')+';">'+
-        '<div class="field"><label>File path</label><input type="text" name="path" style="font-family:var(--font-body);" value="'+escapeAttr(cfg.path||'vouchers.json')+'"></div>'+
-        '<div class="field"><label>Branch</label><input type="text" name="branch" style="font-family:var(--font-body);" value="'+escapeAttr(cfg.branch||'main')+'"></div>'+
+      '<div class="field"><label>API key</label><input type="text" name="apiKey" value="'+escapeAttr(cfg.apiKey)+'" placeholder="AIza…" style="font-family:var(--font-body);" required></div>'+
+      '<div class="field"><label>Auth domain</label><input type="text" name="authDomain" value="'+escapeAttr(cfg.authDomain)+'" placeholder="your-project.firebaseapp.com" style="font-family:var(--font-body);" required></div>'+
+      '<div class="field"><label>Database URL</label><input type="text" name="databaseURL" value="'+escapeAttr(cfg.databaseURL)+'" placeholder="https://your-project-default-rtdb.firebaseio.com" style="font-family:var(--font-body);" required></div>'+
+      '<div class="field"><label>Project ID</label><input type="text" name="projectId" value="'+escapeAttr(cfg.projectId)+'" placeholder="your-project-id" style="font-family:var(--font-body);" required></div>'+
+      '<div class="field"><label>Room code</label><input type="text" name="roomCode" value="'+escapeAttr(cfg.roomCode)+'" placeholder="e.g. our-vouchers" style="font-family:var(--font-body);" required>'+
+        '<div class="hint">Both phones must use the same room code. It can be any word — it\'s just a namespace for your data.</div>'+
       '</div>'+
       '<div class="form-actions"><button class="btn btn-primary btn-block" type="submit">'+(connected?'Save & reconnect':'Connect')+'</button></div>'+
     '</form>'+
-    (connected ? '<div class="form-actions"><button class="btn btn-danger btn-block" data-action="forget-token">Forget token on this phone</button></div>' : '')+
+    (connected ? '<div class="form-actions" style="margin-top:16px;"><button class="btn btn-danger btn-block" data-action="disconnect">Disconnect from Firebase</button></div>' : '')+
+    (!admin ? '<div style="margin-top:28px;padding:16px;border:1px dashed var(--color-border);border-radius:var(--radius);font-size:12.5px;color:var(--color-ink-soft);line-height:1.55;">'+
+      '<b style="color:var(--color-ink);">Need to delete vouchers?</b><br>'+
+      'Open this app with <code style="font-family:var(--font-mono);background:var(--color-bg);padding:2px 6px;border-radius:4px;">#admin</code> at the end of the URL to enable delete actions.'+
+    '</div>' : '')+
   '</div>';
 }
 
@@ -848,9 +911,7 @@ function todayISO(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMo
 function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function escapeAttr(s){ return escapeHtml(s); }
 
-function iconPlus(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'; }
 function iconSettings(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'; }
-function iconRefresh(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>'; }
 function iconBack(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>'; }
 function iconClose(){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>'; }
 
@@ -877,19 +938,36 @@ function handleAction(action, el){
   else if(action==='go-settings'){ state.view='settings'; render(); }
   else if(action==='open-voucher'){ state.view='useDetail'; state.activeVoucherId=id; render(); }
   else if(action==='edit-voucher'){ state.view='manageEdit'; state.editingVoucherId=id; state.photoDraft=null; render(); }
-  else if(action==='refresh'){ refreshFromRemote(false); }
   else if(action==='toggle-pin'){ state.pinRevealed[id]=!state.pinRevealed[id]; render(); }
   else if(action==='toggle-pin-checkout'){ state.pinRevealed['checkout_'+id]=!state.pinRevealed['checkout_'+id]; render(); }
-  else if(action==='toggle-pin-input'){ var pi=document.getElementById('pinInput'); if(pi){ pi.type = pi.type==='password'?'text':'password'; } var btn=appEl.querySelector('[data-action="toggle-pin-input"]'); }
-  else if(action==='toggle-token-input'){ var ti=document.getElementById('tokenInput'); if(ti){ ti.type = ti.type==='password'?'text':'password'; el.textContent = ti.type==='password' ? 'Show' : 'Hide'; } }
-  else if(action==='toggle-advanced'){ state.showAdvanced=!state.showAdvanced; render(); }
+  else if(action==='toggle-pin-input'){ var pi=document.getElementById('pinInput'); if(pi){ pi.type = pi.type==='password'?'text':'password'; } }
   else if(action==='checkout'){ state.checkoutId=id; state.pinRevealed['checkout_'+id]=false; render(); }
   else if(action==='close-checkout'){ state.checkoutId=null; render(); }
   else if(action==='pick-photo'){ var pf=document.getElementById('photoFile'); if(pf) pf.click(); }
-  else if(action==='delete-txn'){ onDeleteTxn(id, el.getAttribute('data-txn')); }
-  else if(action==='delete-voucher'){ onDeleteVoucher(id); }
-  else if(action==='clear-expired'){ onClearExpired(); }
-  else if(action==='forget-token'){ if(confirm('Remove the saved token from this phone? You can reconnect any time.')){ clearConfigLS(); state.config=null; state.vouchers=[]; state.sha=null; state.view='settings'; render(); } }
+  else if(action==='delete-txn'){
+    if(!isAdmin()){ showToast('Delete requires admin mode. Add #admin to the URL.','error'); return; }
+    onDeleteTxn(id, el.getAttribute('data-txn'));
+  }
+  else if(action==='delete-voucher'){
+    if(!isAdmin()){ showToast('Delete requires admin mode. Add #admin to the URL.','error'); return; }
+    onDeleteVoucher(id);
+  }
+  else if(action==='clear-expired'){
+    if(!isAdmin()){ showToast('Delete requires admin mode. Add #admin to the URL.','error'); return; }
+    onClearExpired();
+  }
+  else if(action==='disconnect'){
+    if(confirm('Disconnect from Firebase? Your config will be cleared from this phone.')){
+      if(unsubscribe){ unsubscribe(); unsubscribe=null; }
+      clearConfigLS();
+      state.config=null;
+      state.vouchers=[];
+      state.deletedIds={};
+      state.syncStatus='offline';
+      state.view='settings';
+      render();
+    }
+  }
   else if(action==='set-period'){ state.summaryPeriod=el.getAttribute('data-period'); state.summaryRevealIndex=null; render(); }
   else if(action==='toggle-bar-value'){ var idx=Number(el.getAttribute('data-idx')); state.summaryRevealIndex = state.summaryRevealIndex===idx ? null : idx; render(); }
 }
@@ -927,7 +1005,7 @@ function onSubmitVoucherForm(e){
       vouchers.push({ id:uid(), store:store, label:label, initialValue:initialValue, purchaseDate:purchaseDate, pin:pin, barcodeImage:photo||null, transactions:[], createdAt:Date.now(), updatedAt:Date.now() });
     }
     return vouchers;
-  }, isEdit ? 'Edit voucher '+id : 'Add voucher').then(function(ok){
+  }).then(function(ok){
     if(ok){ state.photoDraft=null; goHome(); showToast(isEdit?'Voucher updated.':'Voucher saved.'); render(); }
   });
 }
@@ -948,7 +1026,7 @@ function onSubmitTxnForm(e){
     var vv=vouchers.find(function(x){ return x.id===id; });
     if(vv){ vv.transactions.push({id:uid(), date:date, amount:amount, ts:Date.now()}); vv.updatedAt=Date.now(); }
     return vouchers;
-  }, 'Add transaction').then(function(ok){ if(ok){ showToast('Transaction added.'); render(); } });
+  }).then(function(ok){ if(ok){ showToast('Transaction added.'); render(); } });
 }
 
 function onDeleteTxn(voucherId, txnId){
@@ -957,12 +1035,12 @@ function onDeleteTxn(voucherId, txnId){
     var v=vouchers.find(function(x){ return x.id===voucherId; });
     if(v){ v.transactions=v.transactions.filter(function(t){ return t.id!==txnId; }); v.updatedAt=Date.now(); }
     return vouchers;
-  }, 'Delete transaction').then(function(ok){ if(ok) showToast('Transaction deleted.'); });
+  }).then(function(ok){ if(ok) showToast('Transaction deleted.'); });
 }
 
 function onDeleteVoucher(id){
   if(!confirm('Delete this voucher and its whole history? This can\'t be undone.')) return;
-  persist(function(vouchers){ return vouchers.filter(function(v){ return v.id!==id; }); }, 'Delete voucher').then(function(ok){
+  persist(function(vouchers){ return vouchers.filter(function(v){ return v.id!==id; }); }, {deletedId:id}).then(function(ok){
     if(ok){ goHome(); showToast('Voucher deleted.'); render(); }
   });
 }
@@ -971,10 +1049,11 @@ function onClearExpired(){
   var expired=state.vouchers.filter(function(v){ return computeVoucher(v).status==='EXPIRED'; });
   if(expired.length===0) return;
   var n=expired.length;
+  var expiredIds=expired.map(function(v){ return v.id; });
   if(!confirm('Delete '+n+' expired voucher'+(n>1?'s':'')+'? This can\'t be undone.')) return;
   persist(function(vouchers){
     return vouchers.filter(function(v){ return computeVoucher(v).status!=='EXPIRED'; });
-  }, 'Clear expired vouchers').then(function(ok){
+  }, {deletedIds:expiredIds}).then(function(ok){
     if(ok){ showToast('Cleared '+n+' expired voucher'+(n>1?'s':'')+'.'); render(); }
   });
 }
@@ -983,38 +1062,44 @@ function onSubmitSettingsForm(e){
   e.preventDefault();
   var f=e.target;
   var cfg={
-    owner:f.owner.value.trim(),
-    repo:f.repo.value.trim(),
-    path:(f.path.value||'vouchers.json').trim(),
-    branch:(f.branch.value||'main').trim(),
-    token:f.token.value.trim()
+    apiKey:f.apiKey.value.trim(),
+    authDomain:f.authDomain.value.trim(),
+    databaseURL:f.databaseURL.value.trim(),
+    projectId:f.projectId.value.trim(),
+    roomCode:f.roomCode.value.trim()
   };
+  if(!cfg.roomCode){ showToast('Enter a room code.','error'); return; }
   var btn=f.querySelector('button[type=submit]');
   btn.disabled=true; btn.textContent='Connecting…';
-  ghCheckRepo(cfg).then(function(){ return ghGetFile(cfg); }).then(function(res){
+
+  try{
+    initFirebase(cfg);
     saveConfigLS(cfg);
     state.config=cfg;
-    state.vouchers=res.data.vouchers||[];
-    state.sha=res.sha;
-    state.syncStatus='synced';
-    state.lastSynced=Date.now();
-    saveCache(res.data, res.sha);
-    goHome();
-    showToast('Connected.');
-    render();
-  }).catch(function(err){
+    startListening(cfg);
+
+    /* Give it a moment to connect */
+    setTimeout(function(){
+      if(state.syncStatus==='live' || state.syncStatus==='synced'){
+        goHome();
+        showToast('Connected — syncing in real time.');
+        render();
+      } else {
+        goHome();
+        showToast('Connected. Waiting for data…');
+        render();
+      }
+    }, 1500);
+  }catch(err){
     showToast(err.message||'Could not connect.','error');
     btn.disabled=false; btn.textContent='Connect';
-  });
+  }
 }
 
 /* ---------------- init ---------------- */
 document.addEventListener('DOMContentLoaded', function(){
   appEl=document.getElementById('app');
   initialLoad();
-});
-document.addEventListener('visibilitychange', function(){
-  if(!document.hidden && state.config) refreshFromRemote(true);
 });
 
 })();
